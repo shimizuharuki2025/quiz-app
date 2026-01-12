@@ -1,6 +1,6 @@
-// Version: 2025-11-12-003 - Fix fill-in-the-blank reset bug
-window.onload = function() {
-    
+// Version: 2026-01-12-004 - Fix fill-in-the-blank input disabled bug (2nd+ questions)
+window.onload = function () {
+
     const APP_PASSWORD = '3963';
 
     const correctSound = new Audio('sounds/correct.mp3');
@@ -72,7 +72,7 @@ window.onload = function() {
     function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]]; } return array; }
     function showScreen(screenName) { Object.values(screens).forEach(screen => screen.style.display = 'none'); if (screens[screenName]) screens[screenName].style.display = 'block'; }
     function applyFontSize() { quizElements.questionText.style.fontSize = FONT_SIZE_LEVELS.question[currentFontSizeLevel]; quizElements.answerButtons.querySelectorAll('button').forEach(button => { button.style.fontSize = FONT_SIZE_LEVELS.answer[currentFontSizeLevel]; }); }
-    
+
     async function loadQuizData() {
         try {
             const response = await fetch(`/api/quiz-data?t=${new Date().getTime()}`);
@@ -87,7 +87,7 @@ window.onload = function() {
             appPasswordElements.modal.style.display = 'none';
         }
     }
-    
+
     function initializeAndShowHomeScreen() {
         showScreen('home');
         homeElements.accordionContainer.innerHTML = '';
@@ -166,6 +166,10 @@ window.onload = function() {
         quizElements.answerButtons.style.display = 'none';
         quizElements.fillInTheBlankContainer.style.display = 'none';
         quizElements.fillInTheBlankInput.value = '';
+        // *** バグ修正: 穴埋め問題の入力欄を完全にリセット ***
+        quizElements.fillInTheBlankInput.disabled = false;
+        quizElements.fillInTheBlankInput.className = ''; // correct/incorrectクラスを削除
+        // *** ここまで修正 ***
         quizElements.confirmAnswerBtn.style.display = 'none';
         quizElements.confirmAnswerBtn.onclick = null;
 
@@ -177,7 +181,7 @@ window.onload = function() {
         quizElements.questionText.textContent = question.question;
         quizElements.questionImage.style.display = question.questionImage ? 'block' : 'none';
         if (question.questionImage) quizElements.questionImage.src = `..${question.questionImage}`;
-        
+
         switch (questionType) {
             case 'single':
             case 'multiple':

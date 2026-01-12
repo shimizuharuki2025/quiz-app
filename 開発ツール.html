@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クイズアプリ 開発ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid #667eea;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .tool-button {
+            display: block;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .tool-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .tool-button.server {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .tool-button.git {
+            background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
+        }
+
+        .tool-button.view {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .tool-button.utility {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .button-text {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .info-box h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info-box a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .info-box a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 クイズアプリ 開発ツール</h1>
+            <p>ワンクリックで開発作業を効率化</p>
+        </div>
+
+        <!-- サーバー管理 -->
+        <div class="section">
+            <div class="section-title">📂 サーバー管理</div>
+            <div class="button-group">
+                <a href="tool/1_サーバー起動.bat" class="tool-button server">
+                    <div class="icon">🚀</div>
+                    <div class="button-text">サーバー起動</div>
+                </a>
+                <a href="tool/3_ローカル画面確認.bat" class="tool-button server">
+                    <div class="icon">👁️</div>
+                    <div class="button-text">ローカル画面確認</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- GitHub操作 -->
+        <div class="section">
+            <div class="section-title">💾 GitHub操作</div>
+            <div class="button-group">
+                <a href="tool/2_GitHubにアップロード.bat" class="tool-button git">
+                    <div class="icon">📤</div>
+                    <div class="button-text">GitHubにアップロード</div>
+                </a>
+                <a href="tool/7_最新版取得.bat" class="tool-button git">
+                    <div class="icon">📥</div>
+                    <div class="button-text">最新版取得</div>
+                </a>
+                <a href="tool/5_変更確認.bat" class="tool-button git">
+                    <div class="icon">🔍</div>
+                    <div class="button-text">変更確認</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- 画面確認 -->
+        <div class="section">
+            <div class="section-title">🌐 画面確認</div>
+            <div class="button-group">
+                <a href="tool/4_GitHub画面確認.bat" class="tool-button view">
+                    <div class="icon">🌍</div>
+                    <div class="button-text">GitHub画面確認</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- ユーティリティ -->
+        <div class="section">
+            <div class="section-title">🛠️ ユーティリティ</div>
+            <div class="button-group">
+                <a href="tool/6_バックアップ作成.bat" class="tool-button utility">
+                    <div class="icon">💾</div>
+                    <div class="button-text">バックアップ作成</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- 情報ボックス -->
+        <div class="info-box">
+            <h3>📌 プロジェクト情報</h3>
+            <p>
+                <strong>GitHubリポジトリ:</strong>
+                <a href="https://github.com/shimizuharuki2025/quiz-app" target="_blank">
+                    shimizuharuki2025/quiz-app
+                </a>
+            </p>
+            <p style="margin-top: 8px;">
+                <strong>ローカルサーバー:</strong>
+                <a href="http://localhost:10000/quiz-app/" target="_blank">
+                    http://localhost:10000/quiz-app/
+                </a>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
