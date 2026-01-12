@@ -1,0 +1,406 @@
+{
+  "mainCategories": [
+    {
+      "id": "main_1761414714681",
+      "name": "開発テスト1026",
+      "subCategories": [
+        {
+          "id": "sub_1761414747616",
+          "name": "テスト（削除）",
+          "description": "",
+          "color": "#cccccc",
+          "password": null,
+          "randomOrder": false,
+          "questions": [
+            {
+              "question": "消さない",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "選択肢1 (正解)",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            }
+          ]
+        },
+        {
+          "id": "sub_1761414782991",
+          "name": "テスト（写真）",
+          "description": "",
+          "color": "#cccccc",
+          "password": null,
+          "randomOrder": false,
+          "questions": [
+            {
+              "question": "写真表示",
+              "questionImage": "/uploads/image-1761414912300-166856246.jpg",
+              "answers": [
+                {
+                  "text": "選択肢1 (正解)",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "写真表示",
+              "explanationImage": "/uploads/image-1761414912300-166856246.jpg"
+            }
+          ]
+        },
+        {
+          "id": "sub_1761414812369",
+          "name": "テスト（ロック）",
+          "description": "",
+          "color": "#cccccc",
+          "password": "3963",
+          "randomOrder": false,
+          "questions": [
+            {
+              "question": "ロックテスト",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "選択肢1 (正解)",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            }
+          ]
+        },
+        {
+          "id": "sub_1761414829084",
+          "name": "テスト（ランダム）",
+          "description": "",
+          "color": "#211c1c",
+          "password": null,
+          "randomOrder": true,
+          "questions": [
+            {
+              "question": "新しい問題文を入力してください。",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "００１",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            },
+            {
+              "question": "新しい問題文を入力してください。",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "００２",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            },
+            {
+              "question": "新しい問題文を入力してください。",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "００３",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            },
+            {
+              "question": "新しい問題文を入力してください。",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "００４",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            },
+            {
+              "question": "新しい問題文を入力してください。",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "００５",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            }
+          ]
+        },
+        {
+          "id": "sub_1761415195182",
+          "name": "テスト（カラー）",
+          "description": "",
+          "color": "#e31616",
+          "password": null,
+          "randomOrder": false,
+          "questions": [
+            {
+              "question": "赤",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "選択肢1 (正解)",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            }
+          ]
+        },
+        {
+          "id": "sub_1761576680715",
+          "name": "テスト（ナンバー）",
+          "description": "",
+          "color": "#cccccc",
+          "password": null,
+          "randomOrder": false,
+          "questions": [
+            {
+              "question": "新しい問題文を入力してください。",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "選択肢1 (正解)",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            },
+            {
+              "question": "新しい問題文を入力してください。",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "選択肢1 (正解)",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            },
+            {
+              "question": "新しい問題文を入力してください。",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "選択肢1 (正解)",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            },
+            {
+              "question": "新しい問題文を入力してください。",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "選択肢1 (正解)",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            },
+            {
+              "question": "新しい問題文を入力してください。",
+              "questionImage": null,
+              "answers": [
+                {
+                  "text": "選択肢1 (正解)",
+                  "correct": true
+                },
+                {
+                  "text": "選択肢2",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢3",
+                  "correct": false
+                },
+                {
+                  "text": "選択肢4",
+                  "correct": false
+                }
+              ],
+              "explanation": "ここに解説文を入力してください。",
+              "explanationImage": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

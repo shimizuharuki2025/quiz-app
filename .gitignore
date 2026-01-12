@@ -1,0 +1,1 @@
+node_modules\npublic/uploads/\n*.zip\n*.msi\n*.sha256\npackage-lock.json\n/public/quiz-app/quiz-data.json

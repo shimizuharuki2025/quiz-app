@@ -1,0 +1,249 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // === 認証関連のDOM要素の取得 ===
+    const authModal = document.getElementById('auth-modal');
+    const adminContent = document.getElementById('admin-content');
+    const authForm = document.getElementById('auth-form');
+    const adminPasswordInput = document.getElementById('admin-password-input');
+    const authMessage = document.getElementById('auth-message');
+
+    // === 認証ロジック ===
+    authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        authMessage.textContent = '';
+        const password = adminPasswordInput.value;
+
+        try {
+            const response = await fetch(window.location.origin + '/api/v1/auth/admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.authenticated) {
+                authModal.style.display = 'none';
+                adminContent.style.display = 'block';
+                // 認証成功後、既存の初期化処理を呼び出す
+                loadInitialData();
+            } else {
+                authMessage.textContent = data.message || '認証に失敗しました。パスワードを確認してください。';
+                adminPasswordInput.value = ''; // パスワードをクリア
+            }
+        } catch (error) {
+            console.error('認証エラー:', error);
+            authMessage.textContent = 'サーバーとの通信に失敗しました。';
+        }
+    });
+
+    // === DOM要素の取得 ===
+    const categoryListContainer = document.getElementById('category-list-container');
+    const newMainCategoryInput = document.getElementById('new-main-category-name');
+    const addMainCategoryBtn = document.getElementById('add-main-category-btn');
+    const editorArea = document.getElementById('editor-area');
+    const editingCategoryName = document.getElementById('editing-category-name');
+    const tabNav = document.querySelector('.tab-nav');
+    const questionList = document.getElementById('question-list');
+    const progressStatusEl = document.getElementById('progress-status');
+    const addQuestionBtn = document.getElementById('add-question-btn');
+    const questionItemTemplate = document.getElementById('question-item-template');
+    const subCategoryNameInput = document.getElementById('sub-category-name-edit');
+    const subCategoryDescInput = document.getElementById('sub-category-desc-edit');
+    const subCategoryColorInput = document.getElementById('sub-category-color-edit');
+    const subCategoryPasswordInput = document.getElementById('sub-category-password-edit');
+    const subCategoryRandomOrderInput = document.getElementById('sub-category-random-order-edit');
+    const deleteSubCategoryBtn = document.getElementById('delete-sub-category-btn');
+    const saveToServerBtn = document.getElementById('save-to-server-btn');
+    const saveStatusEl = document.getElementById('save-status');
+
+    let allData = { mainCategories: [] };
+    let selectedSubCategoryId = null;
+    let isDirty = false;
+
+    // ============================================
+    // === データ操作の一元化関数群 ===
+    // ============================================
+
+    /**
+     * 大カテゴリをallDataに追加
+     * @param {Object} mainCategoryData - 大カテゴリのデータ
+     * @returns {Object} 追加された大カテゴリ
+     */
+    function addMainCategoryToData(mainCategoryData) {
+        if (!allData.mainCategories) {
+            allData.mainCategories = [];
+        }
+        allData.mainCategories.push(mainCategoryData);
+        markAsDirty();
+        console.log('大カテゴリを追加:', mainCategoryData);
+        return mainCategoryData;
+    }
+
+    /**
+     * 大カテゴリをallDataから削除
+     * @param {string} mainCategoryId - 大カテゴリのID
+     * @returns {boolean} 削除成功したかどうか
+     */
+    function removeMainCategoryFromData(mainCategoryId) {
+        const index = allData.mainCategories.findIndex(m => m.id === mainCategoryId);
+        if (index !== -1) {
+            allData.mainCategories.splice(index, 1);
+            markAsDirty();
+            console.log('大カテゴリを削除:', mainCategoryId);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 小カテゴリをallDataに追加
+     * @param {string} mainCategoryId - 大カテゴリのID
+     * @param {Object} subCategoryData - 小カテゴリのデータ
+     * @returns {Object|null} 追加された小カテゴリ、失敗時はnull
+     */
+    function addSubCategoryToData(mainCategoryId, subCategoryData) {
+        const mainCat = allData.mainCategories.find(m => m.id === mainCategoryId);
+        if (mainCat) {
+            if (!mainCat.subCategories) {
+                mainCat.subCategories = [];
+            }
+            mainCat.subCategories.push(subCategoryData);
+            markAsDirty();
+            console.log('小カテゴリを追加:', subCategoryData);
+            return subCategoryData;
+        }
+        console.error('大カテゴリが見つかりません:', mainCategoryId);
+        return null;
+    }
+
+    /**
+     * 小カテゴリをallDataから削除
+     * @param {string} subCategoryId - 小カテゴリのID
+     * @returns {boolean} 削除成功したかどうか
+     */
+    function removeSubCategoryFromData(subCategoryId) {
+        for (const mainCat of allData.mainCategories) {
+            const index = mainCat.subCategories.findIndex(s => s.id === subCategoryId);
+            if (index !== -1) {
+                mainCat.subCategories.splice(index, 1);
+                markAsDirty();
+                console.log('小カテゴリを削除:', subCategoryId);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 問題をallDataに追加
+     * @param {string} subCategoryId - 小カテゴリのID
+     * @param {Object} questionData - 問題のデータ
+     * @returns {Object|null} 追加された問題、失敗時はnull
+     */
+    function addQuestionToData(subCategoryId, questionData) {
+        const subCat = findSubCategoryById(subCategoryId);
+        if (subCat) {
+            if (!subCat.questions) {
+                subCat.questions = [];
+            }
+            subCat.questions.push(questionData);
+            markAsDirty();
+            console.log('問題を追加:', questionData);
+            return questionData;
+        }
+        console.error('小カテゴリが見つかりません:', subCategoryId);
+        return null;
+    }
+
+    /**
+     * 問題をallDataから削除
+     * @param {string} subCategoryId - 小カテゴリのID
+     * @param {number} questionIndex - 問題のインデックス
+     * @returns {boolean} 削除成功したかどうか
+     */
+    function removeQuestionFromData(subCategoryId, questionIndex) {
+        const subCat = findSubCategoryById(subCategoryId);
+        if (subCat && subCat.questions && questionIndex >= 0 && questionIndex < subCat.questions.length) {
+            subCat.questions.splice(questionIndex, 1);
+            markAsDirty();
+            console.log('問題を削除:', subCategoryId, questionIndex);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 問題の順序を変更
+     * @param {string} subCategoryId - 小カテゴリのID
+     * @param {number} oldIndex - 元のインデックス
+     * @param {number} newIndex - 新しいインデックス
+     * @returns {boolean} 変更成功したかどうか
+     */
+    function reorderQuestionInData(subCategoryId, oldIndex, newIndex) {
+        const subCat = findSubCategoryById(subCategoryId);
+        if (subCat && subCat.questions) {
+            const movedItem = subCat.questions.splice(oldIndex, 1)[0];
+            subCat.questions.splice(newIndex, 0, movedItem);
+            markAsDirty();
+            console.log('問題の順序を変更:', subCategoryId, oldIndex, '->', newIndex);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 小カテゴリのデータを更新
+     * @param {string} subCategoryId - 小カテゴリのID
+     * @param {Object} updates - 更新するフィールド
+     * @returns {boolean} 更新成功したかどうか
+     */
+    function updateSubCategoryData(subCategoryId, updates) {
+        const subCat = findSubCategoryById(subCategoryId);
+        if (subCat) {
+            Object.assign(subCat, updates);
+            markAsDirty();
+            console.log('小カテゴリを更新:', subCategoryId, updates);
+            return true;
+        }
+        return false;
+    }
+
+    // ============================================
+    // === 既存の関数定義 ===
+    // ============================================
+
+    function setSaveStatus(status, message = '') {
+        saveStatusEl.className = '';
+        const statusTextEl = saveStatusEl.querySelector('.status-text');
+        const iconEl = saveStatusEl.querySelector('.material-icons');
+        const spinner = saveToServerBtn.querySelector('.spinner');
+        iconEl.textContent = '';
+        spinner.style.display = 'none';
+        saveToServerBtn.querySelector('.btn-text').style.display = 'inline';
+        saveToServerBtn.classList.remove('loading');
+        switch (status) {
+            case 'saved': saveStatusEl.classList.add('status-saved'); iconEl.textContent = 'check_circle'; statusTextEl.textContent = message || '保存済み'; isDirty = false; saveToServerBtn.disabled = true; break;
+            case 'unsaved': saveStatusEl.classList.add('status-unsaved'); iconEl.textContent = 'edit'; statusTextEl.textContent = message || '未保存の変更があります'; isDirty = true; saveToServerBtn.disabled = false; break;
+            case 'saving': saveStatusEl.classList.add('status-saving'); iconEl.textContent = 'sync'; statusTextEl.textContent = message || '保存中...'; spinner.style.display = 'inline-block'; saveToServerBtn.querySelector('.btn-text').style.display = 'none'; saveToServerBtn.classList.add('loading'); saveToServerBtn.disabled = true; break;
+            case 'error': saveStatusEl.classList.add('status-error'); iconEl.textContent = 'error'; statusTextEl.textContent = message || '保存に失敗しました'; isDirty = true; saveToServerBtn.disabled = false; break;
+        }
+    }
+
+    function markAsDirty() { if (!isDirty) setSaveStatus('unsaved'); }
+
+    async function loadInitialData() {
+        try {
+            const response = await fetch(`../quiz-app/quiz-data.json?t=${new Date().getTime()}`);
+            allData = response.ok ? await response.json() : { mainCategories: [] };
+            if (!allData || !Array.isArray(allData.mainCategories)) allData = { mainCategories: [] };
+        } catch (error) {
+            console.error('データ読込エラー:', error);
+            allData = { mainCategories: [] };
+            setSaveStatus('error', 'データ読込失敗');
+        } finally {
+            renderCategoryList();
+            setSaveStatus('saved');
+        }
+    }
+
+

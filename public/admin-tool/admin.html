@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クイズ管理ページ</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="Sortable.min.js" defer></script>
+    <!-- バージョンを更新 -->
+    <script src="admin.js?v=20251112-005" defer></script>
+    <link rel="icon" type="image/png" href="../quiz-app/lawson_logo.png">
+</head>
+<body>
+    <!-- ▼▼▼ ここから認証モーダルを修正 ▼▼▼ -->
+    <div id="auth-container">
+        <div class="auth-card">
+            <img src="../quiz-app/lawson_logo.png" alt="Logo" class="auth-logo">
+            <h2>管理者認証</h2>
+            <p>アクセスするにはパスワードが必要です 。</p>
+            <form id="auth-form">
+                <div class="form-group">
+                    <input type="password" id="admin-password-input" placeholder="パスワードを入力" required>
+                </div>
+                <button type="submit" id="auth-submit-btn">認証</button>
+            </form>
+            <p id="auth-message"></p>
+        </div>
+    </div>
+    <!-- ▲▲▲ ここまで認証モーダルを修正 ▲▲▲ -->
+
+    <div class="container" id="admin-content" style="display: none;">
+        <h1>クイズ管理ページ</h1>
+
+        <div class="card">
+            <h2>カテゴリ管理</h2>
+            <p class="description">
+                大カテゴリ名をクリックすると、小カテゴリのリストが開閉します 。  
+                小カテゴリ名をクリックすると、そのカテゴリの編集を開始します。
+            </p>
+            <div id="category-list-container">
+                <!-- JavaScriptによってカテゴリリストがここに描画される -->
+            </div>
+            <div class="add-category-area">
+                <input type="text" id="new-main-category-name" placeholder="新しい大カテゴリ名を入力">
+                <button id="add-main-category-btn">大カテゴリを追加</button>
+            </div>
+        </div>
+
+        <div id="editor-area" style="display: none;">
+            <h2 id="editing-category-name"></h2>
+            <div class="tab-nav">
+                <button class="tab-link active" data-tab="tab-questions">問題リスト</button>
+                <button class="tab-link" data-tab="tab-settings">小カテゴリ設定</button>
+            </div>
+    
+            <div class="tab-content-wrapper">
+                <div id="tab-questions" class="tab-content active">
+                    <div class="card">
+                        <div id="progress-status" style="margin-bottom: 15px; font-weight: bold;"></div>
+                        <div id="question-list"></div>
+                        <button id="add-question-btn">この小カテゴリに問題を追加</button>
+                    </div>
+                </div>
+    
+                <div id="tab-settings" class="tab-content">
+                    <div class="card">
+                        <h3>小カテゴリ情報編集</h3>
+                        <div class="form-group">
+                            <label for="sub-category-name-edit">小カテゴリ名:</label>
+                            <input type="text" id="sub-category-name-edit">
+                        </div>
+                        <div class="form-group">
+                            <label for="sub-category-description-edit">説明文:</label>
+                            <textarea id="sub-category-description-edit" rows="4"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="sub-category-color-edit">テーマカラー:</label>
+                            <input type="color" id="sub-category-color-edit">
+                        </div>
+                        <div class="form-group">
+                            <label for="sub-category-password-edit">パスワード (空欄で解除):</label>
+                            <input type="text" id="sub-category-password-edit" placeholder="パスワードを設定">
+                        </div>
+                        <div class="form-group-checkbox">
+                            <input type="checkbox" id="sub-category-random-edit">
+                            <label for="sub-category-random-edit">問題をランダムな順番で出題する</label>
+                        </div>
+                        <hr>
+                        <button id="delete-sub-category-btn" class="btn-danger">この小カテゴリを削除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="footer-actions">
+            <button id="save-to-server-btn" class="btn-primary">
+                <span class="btn-text">すべての変更をサーバーに保存</span>
+                <div class="spinner" style="display: none;"></div>
+            </button>
+            <button id="show-history-btn" class="btn-secondary">
+                <span class="material-icons">history</span>
+                <span class="btn-text">変更履歴</span>
+            </button>
+            <button id="backup-btn" class="btn-secondary">
+                <span class="material-icons">cloud_download</span>
+                <span class="btn-text">バックアップ</span>
+            </button>
+            <div id="save-status">
+                <span class="material-icons"></span>
+                <span class="status-text"></span>
+            </div>
+        </div>
+
+        <!-- 変更履歴パネル -->
+        <div id="change-history-panel" class="modal-background" style="display: none;">
+            <div class="modal-content history-modal">
+                <h2>変更履歴</h2>
+                <div id="change-history-list" class="history-list">
+                    <!-- 変更履歴のリスト -->
+                </div>
+                <div class="history-actions">
+                    <button id="clear-history-btn" class="btn-secondary">履歴をクリア</button>
+                    <button id="export-history-btn" class="btn-secondary">履歴をエクスポート</button>
+                    <button id="close-history-btn" class="btn-primary">閉じる</button>
+                </div>
+            </div>
+        </div>
+    
+    </div>
+
+    <div id="custom-confirm-overlay" class="custom-confirm-hidden">
+        <div id="custom-confirm-box">
+            <p id="custom-confirm-message"></p>
+            <div class="custom-confirm-buttons">
+                <button id="custom-confirm-ok">OK</button>
+                <button id="custom-confirm-cancel">キャンセル</button>
+            </div>
+        </div>
+    </div>
+    
+    <template id="question-item-template">
+        <div class="question-item">
+            <div class="question-item-header">
+                <span class="drag-handle">☰</span>
+                <strong class="question-title">問題</strong>
+            </div>
+
+            <div class="form-group">
+                <label>問題タイプ</label>
+                <select class="question-type-select">
+                    <option value="single">単一選択</option>
+                    <option value="multiple">複数選択</option>
+                    <option value="fill-in-the-blank">穴埋め</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>問題文</label>
+                <textarea class="question-text"></textarea>
+                <div class="image-upload-container">
+                    <div class="image-preview" style="display: none;">
+                        <img src="" alt="画像プレビュー">
+                        <button class="delete-image-btn">×</button>
+                    </div>
+                    <input type="file" class="image-upload-input" accept="image/*" style="display: none;">
+                    <button type="button" class="image-upload-btn">画像をアップロード</button>
+                </div>
+            </div>
+
+            <div class="choice-answers-container">
+                <div class="form-group-checkbox" style="margin-bottom: 15px; padding-left: 5px;">
+                    <input type="checkbox" class="is-multiple-choice-input" style="width: auto; margin-right: 8px;">
+                    <label style="font-weight: normal; cursor: pointer;">複数回答を許可する</label>
+                </div>
+                <div class="answers-group"></div>
+            </div>
+
+            <div class="fill-in-the-blank-container hidden">
+                <div class="form-group">
+                    <label>正解テキスト（複数ある場合はカンマ区切りで入力）</label>
+                    <input type="text" class="fill-in-the-blank-answers" placeholder="例: からあげクン,からあげくん">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>解説文</label>
+                <textarea class="explanation-text"></textarea>
+                <div class="image-upload-container">
+                    <div class="image-preview" style="display: none;">
+                        <img src="" alt="画像プレビュー">
+                        <button class="delete-image-btn">×</button>
+                    </div>
+                    <input type="file" class="image-upload-input" accept="image/*" style="display: none;">
+                    <button type="button" class="image-upload-btn">画像をアップロード</button>
+                </div>
+            </div>
+            <button class="delete-question-btn">この問題を削除</button>
+        </div>
+    </template>
+</body>
+</html>
