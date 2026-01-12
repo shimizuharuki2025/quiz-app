@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,8 +10,10 @@
     <script src="Sortable.min.js" defer></script>
     <!-- バージョンを更新 -->
     <script src="admin.js?v=20251112-005" defer></script>
+    <script src="admin-announcements.js?v=20260113-001" defer></script>
     <link rel="icon" type="image/png" href="../quiz-app/lawson_logo.png">
 </head>
+
 <body>
     <!-- ▼▼▼ ここから認証モーダルを修正 ▼▼▼ -->
     <div id="auth-container">
@@ -35,7 +38,7 @@
         <div class="card">
             <h2>カテゴリ管理</h2>
             <p class="description">
-                大カテゴリ名をクリックすると、小カテゴリのリストが開閉します 。  
+                大カテゴリ名をクリックすると、小カテゴリのリストが開閉します 。
                 小カテゴリ名をクリックすると、そのカテゴリの編集を開始します。
             </p>
             <div id="category-list-container">
@@ -47,13 +50,76 @@
             </div>
         </div>
 
+        <!-- お知らせ管理セクション -->
+        <div class="card">
+            <h2>📢 お知らせ管理</h2>
+            <p class="description">
+                利用者向けのお知らせをバナーで表示できます。表示期間を設定すると、自動的に表示/非表示が切り替わります。
+            </p>
+
+            <!-- 新しいお知らせを追加 -->
+            <div class="announcement-add-form" id="announcement-add-form"
+                style="display: none; margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <h3>新しいお知らせを追加</h3>
+                <div class="form-group">
+                    <label for="new-announcement-message">お知らせ本文 <span style="color: #666;">(最大500文字)</span></label>
+                    <textarea id="new-announcement-message" rows="3" maxlength="500"
+                        placeholder="例: 1/15(水)18:00-20:00にシステムメンテナンスを実施します"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="new-announcement-severity">重要度</label>
+                    <select id="new-announcement-severity"
+                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="info">📘 情報 (青色)</option>
+                        <option value="warning">⚠️ 警告 (黄色)</option>
+                        <option value="error">🚨 緊急 (赤色)</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="new-announcement-start-date">表示開始日</label>
+                        <input type="date" id="new-announcement-start-date"
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-announcement-end-date">表示終了日</label>
+                        <input type="date" id="new-announcement-end-date"
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                </div>
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="new-announcement-enabled" checked>
+                    <label for="new-announcement-enabled">すぐに表示する</label>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button id="submit-announcement-btn" class="btn-primary"
+                        style="padding: 10px 20px;">お知らせを追加</button>
+                    <button id="cancel-announcement-btn" class="btn-secondary"
+                        style="padding: 10px 20px;">キャンセル</button>
+                </div>
+            </div>
+
+            <!-- お知らせ一覧 -->
+            <div id="announcements-list-container">
+                <div id="announcements-list">
+                    <!-- JavaScriptによってお知らせリストがここに描画される -->
+                </div>
+            </div>
+
+            <button id="show-add-announcement-btn"
+                style="margin-top: 15px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                + 新しいお知らせを追加
+            </button>
+        </div>
+
         <div id="editor-area" style="display: none;">
             <h2 id="editing-category-name"></h2>
             <div class="tab-nav">
                 <button class="tab-link active" data-tab="tab-questions">問題リスト</button>
                 <button class="tab-link" data-tab="tab-settings">小カテゴリ設定</button>
             </div>
-    
+
             <div class="tab-content-wrapper">
                 <div id="tab-questions" class="tab-content active">
                     <div class="card">
@@ -62,7 +128,7 @@
                         <button id="add-question-btn">この小カテゴリに問題を追加</button>
                     </div>
                 </div>
-    
+
                 <div id="tab-settings" class="tab-content">
                     <div class="card">
                         <h3>小カテゴリ情報編集</h3>
@@ -92,7 +158,7 @@
                 </div>
             </div>
         </div>
-    
+
         <div class="footer-actions">
             <button id="save-to-server-btn" class="btn-primary">
                 <span class="btn-text">すべての変更をサーバーに保存</span>
@@ -126,7 +192,7 @@
                 </div>
             </div>
         </div>
-    
+
     </div>
 
     <div id="custom-confirm-overlay" class="custom-confirm-hidden">
@@ -138,7 +204,7 @@
             </div>
         </div>
     </div>
-    
+
     <template id="question-item-template">
         <div class="question-item">
             <div class="question-item-header">
@@ -199,4 +265,5 @@
         </div>
     </template>
 </body>
+
 </html>

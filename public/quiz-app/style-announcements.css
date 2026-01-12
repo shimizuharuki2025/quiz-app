@@ -1,0 +1,94 @@
+/* ========================================
+   お知らせバナーのスタイル
+   ======================================== */
+
+.announcement-banner {
+    margin: 20px auto;
+    max-width: 900px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease-in-out;
+}
+
+.announcement-banner.announcement-show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.announcement-content {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    gap: 12px;
+}
+
+.announcement-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.announcement-message {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+    font-weight: 500;
+}
+
+/* 重要度別のスタイル */
+.announcement-info {
+    background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+    border-left: 6px solid #2196F3;
+}
+
+.announcement-info .announcement-message {
+    color: #1565C0;
+}
+
+.announcement-warning {
+    background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+    border-left: 6px solid #FFC107;
+}
+
+.announcement-warning .announcement-message {
+    color: #F57F17;
+}
+
+.announcement-error {
+    background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+    border-left: 6px solid #F44336;
+}
+
+.announcement-error .announcement-message {
+    color: #C62828;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 600px) {
+    .announcement-banner {
+        margin: 15px;
+        border-radius: 8px;
+    }
+
+    .announcement-content {
+        padding: 12px 15px;
+        gap: 10px;
+    }
+
+    .announcement-icon {
+        font-size: 20px;
+    }
+
+    .announcement-message {
+        font-size: 14px;
+    }
+
+    .announcement-close {
+        width: 28px;
+        height: 28px;
+        font-size: 20px;
+    }
+}

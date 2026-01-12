@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>K’sプランニングトレーニングツール</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style-announcements.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="lawson_logo.png">
 </head>
+
 <body>
     <!-- 全体パスワードモーダル -->
     <div id="app-password-modal" class="modal-background" style="display: none;">
@@ -31,13 +34,21 @@
                 <img src="lawson_logo.png" alt="LAWSON Logo" class="logo">
                 <h1>トレーニングアプリ</h1>
                 <h2>業務・マニュアルクイズ</h2>
-                <h3>このアプリはグループ外秘です   。</h3>
+                <h3>このアプリはグループ外秘です 。</h3>
                 <p>SNS等への投稿は一切禁止です。</p>
                 <p>部外者・退職者のアクセスも禁止です。</p>
                 <p>（アクセスログは管理をしています。）</p>
                 <p>問題は、問題制作時の社内規定やマニュアルを参考に作成しています。</p>
             </div>
-            
+
+            <!-- お知らせバナー -->
+            <div id="announcement-banner" class="announcement-banner" style="display: none;">
+                <div class="announcement-content">
+                    <span class="announcement-icon" id="announcement-icon">📢</span>
+                    <span class="announcement-message" id="announcement-message"></span>
+                </div>
+            </div>
+
             <div id="accordion-container">
                 <!-- ここにJavaScriptで大カテゴリと小カテゴリが動的に生成されます -->
             </div>
@@ -80,7 +91,7 @@
                 <h2 id="question-text"></h2>
 
                 <!-- ▼▼▼ ここからUI要素を整理・追加 ▼▼▼ -->
-                
+
                 <!-- 選択肢問題用のボタンコンテナ -->
                 <div id="answer-buttons" class="btn-grid"></div>
 
@@ -91,7 +102,7 @@
 
                 <!-- 回答確定ボタン（複数選択・穴埋め問題で使用） -->
                 <button id="confirm-answer-btn" style="display: none; margin-top: 20px; width: 100%;">回答を確定する</button>
-                
+
                 <!-- ▲▲▲ ここまでUI要素を整理・追加 ▲▲▲ -->
 
             </div>
@@ -124,5 +135,7 @@
 
     <!-- バージョンを更新してキャッシュをクリア -->
     <script src="script.js?v=20251112-002"></script>
+    <script src="script-announcements.js?v=20260113-001"></script>
 </body>
+
 </html>
