@@ -190,6 +190,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
             if (employeeCode) users[userIndex].employeeCode = employeeCode;
             if (storeCode) users[userIndex].storeCode = storeCode;
             if (name) users[userIndex].name = name;
+            if (req.body.memo !== undefined) users[userIndex].memo = req.body.memo;
 
             // パスワードの変更（新しいパスワードが含まれている場合）
             if (req.body.password && req.body.password.length > 0) {
