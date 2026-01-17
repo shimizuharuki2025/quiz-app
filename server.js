@@ -60,7 +60,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // --- ▼▼▼【セッション管理の設定】▼▼▼ ---
 // セッションファイル保存ディレクトリ
-const sessionsDir = path.join(__dirname, 'sessions');
+const sessionsDir = path.join(DATA_DIR, 'sessions');
 if (!fs.existsSync(sessionsDir)) {
     fs.mkdirSync(sessionsDir, { recursive: true });
     console.log(`✓ セッション保存ディレクトリを作成しました: ${sessionsDir}`);

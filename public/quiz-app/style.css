@@ -551,12 +551,12 @@ button:active {
     }
 
     .btn-icon .button-text {
-        display: none;
+        display: inline;
+        font-size: 0.85rem;
     }
 
     .btn-icon .button-icon {
-        display: inline;
-        font-size: 1.2em;
+        display: none;
     }
 
     .font-size-controls .btn-icon {
