@@ -64,7 +64,14 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.use(express.json({ limit: '50mb' }));
-app.use(express.static('public'));
+
+// 静的ファイルの配信（絶対パスを使用）
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ルートパスへのアクセスを明示的に index.html へルーティング
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // --- ▼▼▼【セッション管理の設定】▼▼▼ ---
 // セッションファイル保存ディレクトリ
