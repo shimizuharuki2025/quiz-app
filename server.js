@@ -129,8 +129,15 @@ app.post('/upload', upload.single('image'), (req, res) => {
 app.post('/api/v1/auth/admin', (req, res) => {
     const { password } = req.body;
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin';
-    if (password === adminPassword) res.json({ authenticated: true });
-    else res.status(401).json({ authenticated: false, message: 'パスワードが正しくありません。' });
+    if (password === adminPassword) {
+        // セッションに管理者フラグを設定
+        if (req.session) {
+            req.session.isAdmin = true;
+        }
+        res.json({ authenticated: true });
+    } else {
+        res.status(401).json({ authenticated: false, message: 'パスワードが正しくありません。' });
+    }
 });
 
 // ========================================
