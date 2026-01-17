@@ -183,6 +183,28 @@ button:active {
     color: #888;
 }
 
+/* ゲストアクセス・制限用スタイル */
+.sub-category-item .guest-badge {
+    font-size: 10px;
+    background: #4caf50;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 10px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.sub-category-item .lock-icon {
+    font-size: 14px;
+    color: #ff9800;
+    margin-right: 10px;
+}
+
+.sub-category-item.restricted {
+    opacity: 0.8;
+}
+
 
 /* --- パスワードモーダル --- */
 .modal-background {

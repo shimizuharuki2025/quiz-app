@@ -144,12 +144,33 @@ window.onload = async function () {
                     const item = document.createElement('div');
                     item.className = 'sub-category-item';
                     item.dataset.subCategoryId = subCategory.id;
+
+                    const isRestrictedForGuest = window.isGuestMode && !subCategory.isGuestAllowed;
+                    if (isRestrictedForGuest) {
+                        item.classList.add('restricted');
+                    }
+
                     const highScore = localStorage.getItem(`highScore_${subCategory.id}`) || 0;
+
+                    let badgeHtml = '';
+                    if (subCategory.isGuestAllowed) {
+                        badgeHtml = '<span class="guest-badge">お試しプレイ</span>';
+                    } else if (window.isGuestMode) {
+                        badgeHtml = '<span class="lock-icon">🔒</span>';
+                    }
+
                     item.innerHTML = `
                         <div class="icon" style="background-color: ${subCategory.color || '#cccccc'};"></div>
+                        ${badgeHtml}
                         <div class="name">${subCategory.name}</div>
                         <div class="highscore">HS: ${highScore}点</div>`;
+
                     item.addEventListener('click', () => {
+                        if (isRestrictedForGuest) {
+                            alert('このカテゴリはメンバー専用です。\nログインするとプレイ・記録ができます！');
+                            return;
+                        }
+
                         selectedSubCategoryId = subCategory.id;
                         if (subCategory.password) {
                             homeElements.passwordCategoryName.textContent = subCategory.name;

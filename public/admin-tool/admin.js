@@ -210,6 +210,7 @@ function renderSubCategorySettings() {
     const subCategoryColorInput = document.getElementById('sub-category-color-edit');
     const subCategoryPasswordInput = document.getElementById('sub-category-password-edit');
     const subCategoryRandomCheckbox = document.getElementById('sub-category-random-edit');
+    const subCategoryGuestCheckbox = document.getElementById('sub-category-guest-edit');
     if (!selectedSubCategoryId) return;
     const subCat = findSubCategoryById(selectedSubCategoryId);
     if (!subCat) return;
@@ -218,6 +219,7 @@ function renderSubCategorySettings() {
     subCategoryColorInput.value = subCat.color || '#cccccc';
     subCategoryPasswordInput.value = subCat.password || '';
     subCategoryRandomCheckbox.checked = !!subCat.randomOrder;
+    subCategoryGuestCheckbox.checked = !!subCat.isGuestAllowed;
 }
 // Part 3/3: Data Collection, Server Communication, and Event Listeners
 
@@ -230,6 +232,7 @@ function collectUIData() {
     const subCategoryColorInput = document.getElementById('sub-category-color-edit');
     const subCategoryPasswordInput = document.getElementById('sub-category-password-edit');
     const subCategoryRandomCheckbox = document.getElementById('sub-category-random-edit');
+    const subCategoryGuestCheckbox = document.getElementById('sub-category-guest-edit');
     const questionList = document.getElementById('question-list');
 
     subCat.name = subCategoryNameInput.value.trim();
@@ -237,6 +240,7 @@ function collectUIData() {
     subCat.color = subCategoryColorInput.value;
     subCat.password = subCategoryPasswordInput.value.trim() || null;
     subCat.randomOrder = subCategoryRandomCheckbox.checked;
+    subCat.isGuestAllowed = subCategoryGuestCheckbox.checked;
     const newQuestions = [];
     questionList.querySelectorAll('.question-item').forEach(item => {
         const qImgContainer = item.querySelectorAll('.image-upload-container')[0];
