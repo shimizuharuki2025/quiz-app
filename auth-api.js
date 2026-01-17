@@ -245,6 +245,56 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
         }
     });
 
+    // パスワード変更
+    app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+        const userId = req.session.userId;
+        const { newPassword } = req.body;
+
+        if (!newPassword || newPassword.length < 4) {
+            return res.status(400).json({
+                success: false,
+                message: '新しいパスワードは4文字以上で入力してください。'
+            });
+        }
+
+        try {
+            const users = readUsers(usersDataPath);
+            const userIndex = users.findIndex(u => u.id === userId);
+
+            if (userIndex === -1) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'ユーザーが見つかりません。'
+                });
+            }
+
+            // 新しいパスワードをハッシュ化
+            const passwordHash = await bcrypt.hash(newPassword, 10);
+            users[userIndex].passwordHash = passwordHash;
+
+            if (!writeUsers(usersDataPath, users)) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'パスワードの保存に失敗しました。'
+                });
+            }
+
+            console.log('ユーザーが自身のパスワードを更新しました:', users[userIndex].employeeCode);
+
+            res.json({
+                success: true,
+                message: 'パスワードを変更しました。'
+            });
+
+        } catch (error) {
+            console.error('パスワード変更エラー:', error);
+            res.status(500).json({
+                success: false,
+                message: 'サーバーエラーが発生しました。'
+            });
+        }
+    });
+
     // ログアウト
     app.post('/api/auth/logout', (req, res) => {
         req.session.destroy((err) => {

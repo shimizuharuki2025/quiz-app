@@ -159,6 +159,63 @@ function setupAuthEventListeners() {
             window.location.href = '../auth/history.html';
         });
     }
+
+    // パスワード変更モーダル制御
+    const passwordModal = document.getElementById('user-password-change-modal');
+    const openModalBtn = document.getElementById('open-user-password-modal-btn');
+    const closeModalBtn = document.getElementById('close-user-password-modal-btn');
+    const savePasswordBtn = document.getElementById('save-player-password-btn');
+
+    if (openModalBtn) {
+        openModalBtn.addEventListener('click', () => {
+            passwordModal.style.display = 'flex';
+        });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            passwordModal.style.display = 'none';
+        });
+    }
+
+    if (savePasswordBtn) {
+        savePasswordBtn.addEventListener('click', async () => {
+            const newPassword = document.getElementById('new-player-password').value;
+            const confirmPassword = document.getElementById('confirm-player-password').value;
+
+            if (!newPassword || newPassword.length < 4) {
+                alert('パスワードは4文字以上で入力してください。');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                alert('パスワードが一致しません。');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newPassword }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('パスワードを変更しました。');
+                    passwordModal.style.display = 'none';
+                    document.getElementById('new-player-password').value = '';
+                    document.getElementById('confirm-player-password').value = '';
+                } else {
+                    alert('変更失敗: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Password change error:', error);
+                alert('通信エラーが発生しました。');
+            }
+        });
+    }
 }
 
 // エクスポート（グローバルで使用できるように）
