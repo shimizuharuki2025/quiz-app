@@ -98,9 +98,51 @@
             margin-bottom: 20px;
             flex-wrap: wrap;
             align-items: center;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
+        }
+
+        /* --- レスポンシブ調整（画面幅に合わせて文字サイズ等を自動変更） --- */
+        @media (max-width: 1200px) {
+            table {
+                font-size: clamp(10px, 1.2vw, 1rem);
+                /* 幅に応じて文字サイズを縮小 */
+            }
+
+            th,
+            td {
+                padding: 8px 4px;
+                /* パディングを詰める */
+            }
+
+            .btn-small {
+                padding: 4px 6px;
+                font-size: 0.9em;
+                /* 親のフォントサイズに追従 */
+            }
+
+            .action-btns {
+                gap: 4px;
+                flex-wrap: wrap;
+                /* ボタンが多い場合は折り返す */
+            }
+
+            /* テーブル内での折り返し制御 */
+            td {
+                white-space: nowrap;
+                /* 基本的に折り返さない */
+            }
+
+            td:nth-child(2),
+            td:nth-child(4) {
+                /* 名前と店舗名は折り返し許可 */
+                white-space: normal;
+                min-width: 80px;
+                max-width: 150px;
+            }
+        }
+
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
         }
 
         .search-box {
