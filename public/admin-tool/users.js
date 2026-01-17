@@ -131,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td>
                     <div class="action-btns">
+                        <button class="btn-primary btn-small history-btn" data-id="${user.id}">履歴</button>
                         <button class="btn-secondary btn-small edit-btn" data-id="${user.id}">編集</button>
                         <button class="${isBanned ? 'btn-primary' : 'btn-danger'} btn-small ban-btn" data-id="${user.id}" data-banned="${isBanned}">
                             ${isBanned ? '解除' : 'バン'}
@@ -143,10 +144,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // ボタンイベントの設定
+        document.querySelectorAll('.history-btn').forEach(btn => btn.onclick = () => openHistoryModal(btn.dataset.id));
         document.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = () => openEditModal(btn.dataset.id));
         document.querySelectorAll('.ban-btn').forEach(btn => btn.onclick = () => toggleBan(btn.dataset.id, btn.dataset.banned === 'true'));
         document.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = () => deleteUser(btn.dataset.id));
     }
+
+    // 学習履歴モーダル
+    async function openHistoryModal(userId) {
+        const modal = document.getElementById('user-history-modal');
+        const listBody = document.getElementById('user-history-body');
+        const noHistory = document.getElementById('no-history-message');
+        const title = document.getElementById('history-modal-title');
+
+        listBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">読み込み中...</td></tr>';
+        noHistory.style.display = 'none';
+        modal.style.display = 'flex';
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                const user = data.user;
+                title.textContent = `${user.name} さんの学習履歴`;
+                const history = user.history.quizHistory || [];
+
+                if (history.length === 0) {
+                    listBody.innerHTML = '';
+                    noHistory.style.display = 'block';
+                } else {
+                    listBody.innerHTML = '';
+                    // 新しい順に並べる
+                    const sortedHistory = [...history].sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+
+                    sortedHistory.forEach(item => {
+                        const date = new Date(item.completedAt).toLocaleString('ja-JP');
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">${date}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.categoryName}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold; color: ${item.score >= 80 ? '#4caf50' : '#333'}">${item.score}点</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.correctAnswers} / ${item.totalQuestions}</td>
+                        `;
+                        listBody.appendChild(tr);
+                    });
+                }
+            } else {
+                listBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">データの取得に失敗しました。</td></tr>';
+            }
+        } catch (error) {
+            console.error('History fetch error:', error);
+            listBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">通信エラーが発生しました。</td></tr>';
+        }
+    }
+
+    document.getElementById('close-history-modal-btn').onclick = () => {
+        document.getElementById('user-history-modal').style.display = 'none';
+    };
 
     // バン切り替え（理由入力付き）
     let currentBanTargetId = null;
@@ -261,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    document.getElementById('close-modal-btn').onclick = () => {
+    document.getElementById('close-user-modal-btn').onclick = () => {
         document.getElementById('edit-user-modal').style.display = 'none';
     };
 

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学習統計ダッシュボード - 管理者ツール</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../quiz-app/lawson_logo.png">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stats-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .stats-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stats-card .label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .dashboard-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .dashboard-section h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .score-high {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .score-mid {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .score-low {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 認証コンテナ -->
+    <div id="auth-container">
+        <div class="auth-card">
+            <img src="../quiz-app/lawson_logo.png" alt="Logo" class="auth-logo">
+            <h2>管理者認証</h2>
+            <p>統計データにアクセスするにはパスワードが必要です。</p>
+            <form id="auth-form">
+                <div class="form-group">
+                    <input type="password" id="admin-password-input" placeholder="パスワードを入力" required>
+                </div>
+                <button type="submit" id="auth-submit-btn">認証</button>
+            </form>
+            <p id="auth-message"></p>
+        </div>
+    </div>
+
+    <div class="container" id="admin-content" style="display: none;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <h1>学習統計ダッシュボード</h1>
+            <div style="display: flex; gap: 10px;">
+                <a href="users.html" class="nav-link">
+                    <span class="material-icons">people</span>
+                    ユーザー管理
+                </a>
+                <a href="admin.html" class="nav-link">
+                    <span class="material-icons">settings</span>
+                    クイズ編集
+                </a>
+                <button id="download-csv-btn" class="nav-link" style="border: none; cursor: pointer; color: #4caf50;">
+                    <span class="material-icons">description</span>
+                    CSV出力
+                </button>
+            </div>
+        </div>
+
+        <!-- 概要スタッツ -->
+        <div class="stats-grid" id="summary-stats">
+            <div class="stats-card">
+                <div class="label">総ユーザー数</div>
+                <div class="value" id="stat-total-users">-</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">アクティブユーザー</div>
+                <div class="value" id="stat-active-users">-</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">総プレイ回数</div>
+                <div class="value" id="stat-total-plays">-</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">全体平均点</div>
+                <div class="value" id="stat-avg-score">-</div>
+            </div>
+        </div>
+
+        <!-- 店舗別利用状況 -->
+        <div class="dashboard-section">
+            <h2><span class="material-icons">store</span>店舗別利用状況</h2>
+            <div style="overflow-x: auto;">
+                <table id="store-stats-table">
+                    <thead>
+                        <tr>
+                            <th>店舗名 (コード)</th>
+                            <th style="text-align: right;">アクティブ人数</th>
+                            <th style="text-align: right;">総プレイ回数</th>
+                            <th style="text-align: right;">平均点</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 動的に挿入 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- カテゴリ別統計 -->
+        <div class="dashboard-section">
+            <h2><span class="material-icons">category</span>カテゴリ別パフォーマンス</h2>
+            <div style="overflow-x: auto;">
+                <table id="category-stats-table">
+                    <thead>
+                        <tr>
+                            <th>カテゴリ名</th>
+                            <th style="text-align: right;">プレイ回数</th>
+                            <th style="text-align: right;">平均点</th>
+                            <th style="text-align: right;">正解率 (合計)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 動的に挿入 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 最近の活動 -->
+        <div class="dashboard-section">
+            <h2><span class="material-icons">history</span>最近の学習活動</h2>
+            <div style="overflow-x: auto;">
+                <table id="recent-activity-table">
+                    <thead>
+                        <tr>
+                            <th>日時</th>
+                            <th>ユーザー名</th>
+                            <th>店舗</th>
+                            <th>クイズカテゴリ</th>
+                            <th style="text-align: right;">得点</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 動的に挿入 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="loading-spinner" style="text-align: center; padding: 50px;">
+            <div class="spinner"></div>
+            <p>データを集計中...</p>
+        </div>
+    </div>
+
+    <script src="stats.js"></script>
+</body>
+
+</html>

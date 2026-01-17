@@ -397,5 +397,152 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
         }
     });
 
+    // 全体の学習統計を取得（管理者専用）
+    app.get('/api/admin/stats', requireAdmin, (req, res) => {
+        try {
+            const history = readLearningHistory(learningHistoryPath);
+            const users = readUsers(usersDataPath);
+
+            // 店舗マスタを読み込んでマッピングを作成
+            let storeMap = {};
+            try {
+                if (fs.existsSync(quizDataPath)) {
+                    const quizData = JSON.parse(fs.readFileSync(quizDataPath, 'utf8'));
+                    if (quizData.storeMaster && Array.isArray(quizData.storeMaster)) {
+                        quizData.storeMaster.forEach(store => {
+                            storeMap[store.code] = store.name;
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error('店舗マスタ読込エラー:', e);
+            }
+
+            const stats = {
+                summary: {
+                    totalUsers: users.length,
+                    activeUsers: 0,
+                    totalPlayCount: 0,
+                    averageScore: 0,
+                    totalCorrectAnswers: 0,
+                    totalQuestions: 0
+                },
+                categoryStats: {}, // { categoryId: { name, playCount, totalScore, averageScore } }
+                storeStats: {},    // { storeCode: { name, activeUsers: Set, playCount, totalScore, averageScore } }
+                recentActivity: []
+            };
+
+            let allHistoryItems = [];
+            let userIdsWithHistory = new Set();
+
+            Object.keys(history).forEach(userId => {
+                const userStats = history[userId];
+                if (userStats.quizHistory && userStats.quizHistory.length > 0) {
+                    userIdsWithHistory.add(userId);
+                    stats.summary.totalPlayCount += userStats.quizHistory.length;
+
+                    // ユーザー情報を取得
+                    const user = users.find(u => u.id === userId);
+                    const storeCode = user ? user.storeCode : 'unknown';
+                    // 店舗マスタから名前を解決、なければ「店舗不明」
+                    const storeName = storeMap[storeCode] || '店舗不明';
+
+                    // 店舗統計の初期化
+                    if (!stats.storeStats[storeCode]) {
+                        stats.storeStats[storeCode] = {
+                            name: storeName,
+                            activeUsers: [], // SetはJSON化できないので配列変換用に一時保持、あるいはロジック内で処理
+                            activeUserIds: new Set(),
+                            playCount: 0,
+                            totalScore: 0,
+                            averageScore: 0
+                        };
+                    }
+                    stats.storeStats[storeCode].activeUserIds.add(userId);
+
+                    userStats.quizHistory.forEach(item => {
+                        allHistoryItems.push({
+                            ...item,
+                            userId,
+                            userName: user ? user.name : '不明なユーザー',
+                            employeeCode: user ? user.employeeCode : '',
+                            storeName: storeName
+                        });
+
+                        // カテゴリ別統計
+                        if (!stats.categoryStats[item.categoryId]) {
+                            stats.categoryStats[item.categoryId] = {
+                                name: item.categoryName,
+                                playCount: 0,
+                                totalScore: 0,
+                                totalCorrect: 0,
+                                totalQuestions: 0
+                            };
+                        }
+                        const cat = stats.categoryStats[item.categoryId];
+                        cat.playCount++;
+                        cat.totalScore += item.score;
+                        cat.totalCorrect += item.correctAnswers;
+                        cat.totalQuestions += item.totalQuestions;
+
+                        // 店舗別統計（プレイ回数・スコア）
+                        const st = stats.storeStats[storeCode];
+                        st.playCount++;
+                        st.totalScore += item.score;
+                    });
+                }
+            });
+
+            stats.summary.activeUsers = userIdsWithHistory.size;
+
+            if (stats.summary.totalPlayCount > 0) {
+                let sumScore = 0;
+                let sumCorrect = 0;
+                let sumQuestions = 0;
+
+                allHistoryItems.forEach(item => {
+                    sumScore += item.score;
+                    sumCorrect += item.correctAnswers;
+                    sumQuestions += item.totalQuestions;
+                });
+
+                stats.summary.averageScore = Math.round(sumScore / stats.summary.totalPlayCount);
+                stats.summary.totalCorrectAnswers = sumCorrect;
+                stats.summary.totalQuestions = sumQuestions;
+            }
+
+            // カテゴリ平均点の計算
+            Object.keys(stats.categoryStats).forEach(id => {
+                const cat = stats.categoryStats[id];
+                cat.averageScore = Math.round(cat.totalScore / cat.playCount);
+            });
+
+            // 店舗統計の仕上げ（Setのサイズ取得と平均点計算）
+            Object.keys(stats.storeStats).forEach(code => {
+                const st = stats.storeStats[code];
+                st.activeUsersCount = st.activeUserIds.size;
+                delete st.activeUserIds; // JSONレスポンスからSetを削除
+                st.averageScore = st.playCount > 0 ? Math.round(st.totalScore / st.playCount) : 0;
+            });
+
+            // 最近の活動（最新20件）
+            stats.recentActivity = allHistoryItems
+                .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
+                .slice(0, 20);
+
+            res.json({
+                success: true,
+                stats
+            });
+
+        } catch (error) {
+            console.error('統計データ取得エラー:', error);
+            res.status(500).json({
+                success: false,
+                message: '統計データの取得に失敗しました。'
+            });
+        }
+    });
+
     console.log('✓ 管理者用ユーザー管理APIを初期化しました');
 };

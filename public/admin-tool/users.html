@@ -7,7 +7,7 @@
     <title>ユーザー管理 - クイズアプリ管理者</title>
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script src="users.js?v=20260117-001" defer></script>
+    <script src="users.js?v=20260118-002" defer></script>
     <link rel="icon" type="image/png" href="../quiz-app/lawson_logo.png">
     <style>
         .user-table-container {
@@ -250,8 +250,7 @@
                         <tr>
                             <th>従業員コード</th>
                             <th>名前</th>
-                            <th>店舗コード</th>
-                            <th>店舗名</th>
+                            <th>店舗名 (コード)</th>
                             <th>ステータス</th>
                             <th>学習状況</th>
                             <th>操作</th>
@@ -302,9 +301,51 @@
                 </div>
             </div>
 
+            <div style="display: flex; gap: 10px;">
+                <a href="stats.html"
+                    style="text-decoration: none; color: #667eea; font-weight: bold; display: flex; align-items: center; gap: 5px; background: white; padding: 10px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <span class="material-icons">bar_chart</span>
+                    統計ダッシュボード
+                </a>
+                <a href="admin.html"
+                    style="text-decoration: none; color: #667eea; font-weight: bold; display: flex; align-items: center; gap: 5px; background: white; padding: 10px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <span class="material-icons">settings</span>
+                    クイズ編集へ
+                </a>
+            </div>
+
             <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
                 <button id="save-user-btn" class="btn-primary">保存する</button>
-                <button id="close-modal-btn" class="btn-secondary">キャンセル</button>
+                <button id="close-user-modal-btn" class="btn-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ユーザー学習履歴モーダル -->
+    <div id="user-history-modal" class="modal-background" style="display: none;">
+        <div class="modal-content" style="max-width: 800px; width: 90%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="history-modal-title">学習履歴</h2>
+                <button id="close-history-modal-btn" class="btn-secondary">閉じる</button>
+            </div>
+
+            <div style="max-height: 500px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 10px; border-bottom: 2px solid #dee2e6; text-align: left;">日時</th>
+                            <th style="padding: 10px; border-bottom: 2px solid #dee2e6; text-align: left;">カテゴリ</th>
+                            <th style="padding: 10px; border-bottom: 2px solid #dee2e6; text-align: right;">点数</th>
+                            <th style="padding: 10px; border-bottom: 2px solid #dee2e6; text-align: right;">正解数</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-history-body">
+                        <!-- 履歴データがここに挿入されます -->
+                    </tbody>
+                </table>
+                <div id="no-history-message" style="display: none; text-align: center; padding: 40px; color: #666;">
+                    まだ学習履歴がありません。
+                </div>
             </div>
         </div>
     </div>
