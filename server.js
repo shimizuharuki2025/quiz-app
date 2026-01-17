@@ -128,16 +128,60 @@ app.post('/upload', upload.single('image'), (req, res) => {
 
 app.post('/api/v1/auth/admin', (req, res) => {
     const { password } = req.body;
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin';
-    if (password === adminPassword) {
-        // セッションに管理者フラグを設定
-        if (req.session) {
-            req.session.isAdmin = true;
+
+    // quiz-data.jsonから管理者設定を読み込む
+    fs.readFile(quizDataPath, 'utf8', (err, data) => {
+        let adminPasswordHash = null;
+        const defaultPassword = process.env.ADMIN_PASSWORD || 'admin';
+
+        if (!err) {
+            try {
+                const quizData = JSON.parse(data);
+                adminPasswordHash = quizData.adminPasswordHash;
+            } catch (e) {
+                console.error('管理者設定の解析に失敗しました');
+            }
         }
-        res.json({ authenticated: true });
-    } else {
-        res.status(401).json({ authenticated: false, message: 'パスワードが正しくありません。' });
+
+        const isMatch = adminPasswordHash
+            ? bcrypt.compareSync(password, adminPasswordHash)
+            : password === defaultPassword;
+
+        if (isMatch) {
+            if (req.session) {
+                req.session.isAdmin = true;
+            }
+            res.json({ authenticated: true });
+        } else {
+            res.status(401).json({ authenticated: false, message: 'パスワードが正しくありません。' });
+        }
+    });
+});
+
+// 管理者パスワード変更API
+app.post('/api/admin/change-password', requireAdmin, (req, res) => {
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 4) {
+        return res.status(400).json({ success: false, message: '新しいパスワードは4文字以上で入力してください。' });
     }
+
+    fs.readFile(quizDataPath, 'utf8', (err, data) => {
+        if (err) return res.status(500).json({ success: false, message: 'データの読み込みに失敗しました。' });
+
+        try {
+            const quizData = JSON.parse(data);
+            const salt = bcrypt.genSaltSync(10);
+            quizData.adminPasswordHash = bcrypt.hashSync(newPassword, salt);
+
+            fs.writeFile(quizDataPath, JSON.stringify(quizData, null, 2), 'utf8', (writeErr) => {
+                if (writeErr) return res.status(500).json({ success: false, message: 'パスワードの保存に失敗しました。' });
+                res.json({ success: true, message: '管理者パスワードを変更しました。' });
+            });
+        } catch (parseErr) {
+            res.status(500).json({ success: false, message: 'データ解析エラーが発生しました。' });
+        }
+    });
 });
 
 // ========================================
