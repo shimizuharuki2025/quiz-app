@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザー管理 - クイズアプリ管理者</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="users.js?v=20260117-001" defer></script>
+    <link rel="icon" type="image/png" href="../quiz-app/lawson_logo.png">
+    <style>
+        .user-table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background-color: #fcfcfc;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background-color: #e3fcef;
+            color: #00875a;
+        }
+
+        .status-banned {
+            background-color: #ffebe6;
+            color: #de350b;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+
+        .nav-links {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        .stats-info {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 認証モーダル（admin.htmlと同じ仕組み） -->
+    <div id="auth-container">
+        <div class="auth-card">
+            <img src="../quiz-app/lawson_logo.png" alt="Logo" class="auth-logo">
+            <h2>管理者認証</h2>
+            <p>アクセスするにはパスワードが必要です。</p>
+            <form id="auth-form">
+                <div class="form-group">
+                    <input type="password" id="admin-password-input" placeholder="パスワードを入力" required>
+                </div>
+                <button type="submit" id="auth-submit-btn">認証</button>
+            </form>
+            <p id="auth-message"></p>
+        </div>
+    </div>
+
+    <div class="container" id="admin-content" style="display: none;">
+        <div class="nav-links">
+            <a href="admin.html"><span class="material-icons">arrow_back</span>クイズ管理へ戻る</a>
+        </div>
+
+        <h1>ユーザー管理</h1>
+
+        <div class="card">
+            <h2>登録済みユーザー一覧</h2>
+            <p class="description">
+                アカウントの停止（バン）、情報の編集、学習記録の確認ができます。
+            </p>
+
+            <div id="loading-spinner" style="text-align: center; padding: 20px;">
+                <div class="spinner" style="display: inline-block;"></div>
+                <p>データを読み込み中...</p>
+            </div>
+
+            <div class="user-table-container" id="user-table-container" style="display: none;">
+                <table id="user-table">
+                    <thead>
+                        <tr>
+                            <th>従業員コード</th>
+                            <th>名前</th>
+                            <th>店舗</th>
+                            <th>ステータス</th>
+                            <th>学習状況</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list-body">
+                        <!-- ここにユーザーが追加される -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ユーザー編集モーダル -->
+    <div id="edit-user-modal" class="modal-background" style="display: none;">
+        <div class="modal-content">
+            <h2>ユーザー情報の編集</h2>
+            <input type="hidden" id="edit-user-id">
+            <div class="form-group">
+                <label for="edit-employee-code">従業員コード:</label>
+                <input type="text" id="edit-employee-code">
+            </div>
+            <div class="form-group">
+                <label for="edit-store-code">店舗コード:</label>
+                <input type="text" id="edit-store-code">
+            </div>
+            <div class="form-group">
+                <label for="edit-user-name">名前:</label>
+                <input type="text" id="edit-user-name">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="save-user-btn" class="btn-primary">保存する</button>
+                <button id="close-modal-btn" class="btn-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-confirm-overlay" class="custom-confirm-hidden">
+        <div id="custom-confirm-box">
+            <p id="custom-confirm-message"></p>
+            <div class="custom-confirm-buttons">
+                <button id="custom-confirm-ok">OK</button>
+                <button id="custom-confirm-cancel">キャンセル</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
