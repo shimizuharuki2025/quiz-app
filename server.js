@@ -11,37 +11,23 @@ const app = express();
 const port = process.env.PORT || 10000;
 
 // --- ▼▼▼【Disk機能の設定】▼▼▼ ---
-const DATA_DIR = process.env.RENDER_DISK_MOUNT_PATH || path.join(__dirname, 'public', 'quiz-app');
+// 全ての重要データを永続化ディスク(/data)に配置する
+const DATA_DIR = process.env.RENDER_DISK_MOUNT_PATH || path.join(__dirname, 'data');
 const quizDataPath = path.join(DATA_DIR, 'quiz-data.json');
+const usersDataPath = path.join(DATA_DIR, 'users.json');
+const learningHistoryPath = path.join(DATA_DIR, 'learning-history.json');
 const sourceDataPath = path.join(__dirname, 'public', 'quiz-app', 'quiz-data.json');
 
-// ユーザーデータと学習履歴のパス
-const usersDataPath = path.join(__dirname, 'data', 'users.json');
-const learningHistoryPath = path.join(__dirname, 'data', 'learning-history.json');
-
 // 画像保存先もDiskに変更
-const uploadPath = process.env.RENDER_DISK_MOUNT_PATH
-    ? path.join(process.env.RENDER_DISK_MOUNT_PATH, 'uploads')
-    : path.join(__dirname, 'public', 'uploads');
+const uploadPath = path.join(DATA_DIR, 'uploads');
 
-// dataディレクトリが存在しない場合は作成
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-    console.log(`✓ データディレクトリを作成しました: ${dataDir}`);
-}
-
-// Diskディレクトリが存在しない場合は作成
-if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    console.log(`✓ データディレクトリを作成しました: ${DATA_DIR}`);
-}
-
-// 画像保存用ディレクトリを作成
-if (!fs.existsSync(uploadPath)) {
-    fs.mkdirSync(uploadPath, { recursive: true });
-    console.log(`✓ 画像保存ディレクトリを作成しました: ${uploadPath}`);
-}
+// 各種ディレクトリの作成（Disk内）
+[DATA_DIR, uploadPath].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log(`✓ ディレクトリを作成しました: ${dir}`);
+    }
+});
 
 // Diskに quiz-data.json が存在しない場合、初期データをコピー
 if (!fs.existsSync(quizDataPath)) {
@@ -49,7 +35,6 @@ if (!fs.existsSync(quizDataPath)) {
         fs.copyFileSync(sourceDataPath, quizDataPath);
         console.log(`✓ 初期データをコピーしました: ${sourceDataPath} → ${quizDataPath}`);
     } else {
-        // 初期データも存在しない場合は空のデータを作成
         const emptyData = { mainCategories: [] };
         fs.writeFileSync(quizDataPath, JSON.stringify(emptyData, null, 2), 'utf8');
         console.log(`✓ 空の初期データを作成しました: ${quizDataPath}`);
@@ -65,47 +50,18 @@ const upload = multer({ storage: storage });
 
 app.use(express.json({ limit: '50mb' }));
 
-// 静的ファイルの配信（絶対パスを使用）
-app.use(express.static(path.join(__dirname, 'public')));
-
-// ルートパスへのアクセスを明示的に index.html へルーティング
+// 1. ルートパス (/) のハンドラを静的ファイルより先に定義（強制的に index.html を返す）
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// --- ▼▼▼【セッション管理の設定】▼▼▼ ---
-// セッションファイル保存ディレクトリ
-const sessionsDir = path.join(__dirname, 'sessions');
-if (!fs.existsSync(sessionsDir)) {
-    fs.mkdirSync(sessionsDir, { recursive: true });
-    console.log(`✓ セッション保存ディレクトリを作成しました: ${sessionsDir}`);
-}
-
-app.use(session({
-    store: new FileStore({
-        path: sessionsDir,
-        ttl: 90 * 24 * 60 * 60, // 90日間（秒単位）
-        reapInterval: 24 * 60 * 60 // 1日ごとに期限切れセッションを削除
-    }),
-    secret: process.env.SESSION_SECRET || 'quiz-app-secret-key-2026',
-    resave: false, // セッションが変更されていない限り再保存しない
-    saveUninitialized: false, // 未初期化のセッションは保存しない
-    rolling: true, // アクセスごとにセッション有効期限を延長（自動延長機能）
-    cookie: {
-        maxAge: 90 * 24 * 60 * 60 * 1000, // 90日間（ミリ秒単位）
-        httpOnly: true, // XSS対策
-        secure: false // HTTPSの場合はtrueに変更
-    }
-}));
-console.log('✓ セッション管理を初期化しました（有効期限: 90日・自動延長）');
-// --- ▲▲▲【ここまで】▲▲▲ ---
+// 2. 静的ファイルの配信
+app.use(express.static(path.join(__dirname, 'public')));
 
 // --- ▼▼▼【Diskに保存された画像を配信】▼▼▼ ---
 // /uploads/ へのリクエストをDiskの画像ディレクトリから配信
-if (process.env.RENDER_DISK_MOUNT_PATH) {
-    app.use('/uploads', express.static(uploadPath));
-    console.log(`✓ 画像配信パスを設定しました: /uploads → ${uploadPath}`);
-}
+app.use('/uploads', express.static(uploadPath));
+// --- ▲▲▲【ここまで】 ▲▲▲ ---
 // --- ▲▲▲【ここまで】▲▲▲ ---
 
 // APIエンドポイント：クイズデータを取得する
