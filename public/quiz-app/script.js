@@ -396,7 +396,15 @@ window.onload = async function () {
     appPasswordElements.form.addEventListener('submit', (e) => { e.preventDefault(); if (appPasswordElements.input.value === APP_PASSWORD) { appPasswordElements.modal.style.display = 'none'; initializeAndShowHomeScreen(); } else { alert('パスワードが違います。'); appPasswordElements.input.value = ''; } });
     homeElements.passwordSubmitBtn.addEventListener('click', () => { const selectedSubCategory = quizData.mainCategories.flatMap(main => main.subCategories).find(sub => sub.id === selectedSubCategoryId); if (selectedSubCategory && homeElements.passwordInput.value === selectedSubCategory.password) { homeElements.passwordModal.style.display = 'none'; startQuiz(selectedSubCategoryId); } else { alert('パスワードが違います。'); homeElements.passwordInput.value = ''; } });
     homeElements.passwordCancelBtn.addEventListener('click', () => { homeElements.passwordModal.style.display = 'none'; });
-    quizElements.muteBtn.addEventListener('click', () => { isSoundEnabled = !isSoundEnabled; localStorage.setItem('isSoundEnabled', isSoundEnabled); quizElements.muteBtn.textContent = isSoundEnabled ? '🔊' : '🔇'; quizElements.muteBtn.classList.toggle('muted', !isSoundEnabled); });
+    quizElements.muteBtn.addEventListener('click', () => {
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('isSoundEnabled', isSoundEnabled);
+        const iconSpan = quizElements.muteBtn.querySelector('.button-icon');
+        if (iconSpan) {
+            iconSpan.textContent = isSoundEnabled ? '🔊' : '🔇';
+        }
+        quizElements.muteBtn.classList.toggle('muted', !isSoundEnabled);
+    });
     quizElements.quitQuizBtn.addEventListener('click', () => { if (confirm('クイズを中断してホーム画面に戻りますか？')) { initializeAndShowHomeScreen(); } });
     quizElements.nextQuestionBtn.addEventListener('click', nextQuestion);
     resultElements.restartBtn.addEventListener('click', () => startQuiz(selectedSubCategoryId));
@@ -405,7 +413,10 @@ window.onload = async function () {
     quizElements.fontSizeUpBtn.addEventListener('click', () => { if (currentFontSizeLevel < FONT_SIZE_LEVELS.question.length - 1) { currentFontSizeLevel++; applyFontSize(); } });
     quizElements.fontSizeDownBtn.addEventListener('click', () => { if (currentFontSizeLevel > 0) { currentFontSizeLevel--; applyFontSize(); } });
 
-    quizElements.muteBtn.textContent = isSoundEnabled ? '🔊' : '🔇';
+    const initialIconSpan = quizElements.muteBtn.querySelector('.button-icon');
+    if (initialIconSpan) {
+        initialIconSpan.textContent = isSoundEnabled ? '🔊' : '🔇';
+    }
     quizElements.muteBtn.classList.toggle('muted', !isSoundEnabled);
     loadQuizData();
 };

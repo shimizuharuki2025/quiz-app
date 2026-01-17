@@ -246,69 +246,77 @@
             </div>
             <div id="question-container">
                 <div class="quiz-header">
-                    <p id="question-number">第1問</p>
+                    <div id="question-number">第1問</div>
                     <div class="quiz-header-buttons">
                         <div class="font-size-controls">
-                            <button id="font-size-down" class="btn-icon" title="文字を小さく">小</button>
-                            <button id="font-size-up" class="btn-icon" title="文字を大きく">大</button>
+                            <button id="font-size-down" class="btn-icon" title="文字を小さく">
+                                <span class="button-text">小</span>
+                                <span class="button-icon">−</span>
+                            </button>
+                            <button id="font-size-up" class="btn-icon" title="文字を大きく">
+                                <span class="button-text">大</span>
+                                <span class="button-icon">+</span>
+                            </button>
                         </div>
-                        <button id="mute-btn" class="btn-icon" title="音声のオン/オフ">🎧</button>
-                        <button id="quit-quiz-btn" class="btn-secondary">
-                            <span class="button-text">中断してホームへ</span>
+                        <button id="mute-btn" class="btn-icon" title="音声のオン/オフ">
+                            <span class="button-text">音量</span>
+                            <span class="button-icon">🔊</span>
+                        </button>
+                        <button id="quit-quiz-btn" class="btn-icon btn-secondary" title="中断してホームへ">
+                            <span class="button-text">中断</span>
                             <span class="button-icon">🏠</span>
                         </button>
-                        <img id="question-image" class="quiz-image" src="" alt="問題画像" style="display: none;">
-                        <h2 id="question-text"></h2>
-
-                        <!-- ▼▼▼ ここからUI要素を整理・追加 ▼▼▼ -->
-
-                        <!-- 選択肢問題用のボタンコンテナ -->
-                        <div id="answer-buttons" class="btn-grid"></div>
-
-                        <!-- 穴埋め問題用の入力コンテナ -->
-                        <div id="fill-in-the-blank-container" style="display: none;">
-                            <input type="text" id="fill-in-the-blank-input" placeholder="答えを入力してください">
-                        </div>
-
-                        <!-- 回答確定ボタン（複数選択・穴埋め問題で使用） -->
-                        <button id="confirm-answer-btn"
-                            style="display: none; margin-top: 20px; width: 100%;">回答を確定する</button>
-
-                        <!-- ▲▲▲ ここまでUI要素を整理・追加 ▲▲▲ -->
-
                     </div>
-                    <div id="explanation-container" style="display: none;">
-                        <h3 id="feedback-title"></h3>
-                        <img id="explanation-image" class="quiz-image" src="" alt="解説画像" style="display: none;">
-                        <p id="explanation-text"></p>
-                        <button id="next-question-btn">次の問題へ</button>
-                    </div>
+                </div><img id="question-image" class="quiz-image" src="" alt="問題画像" style="display: none;">
+                <h2 id="question-text"></h2>
+
+                <!-- ▼▼▼ ここからUI要素を整理・追加 ▼▼▼ -->
+
+                <!-- 選択肢問題用のボタンコンテナ -->
+                <div id="answer-buttons" class="btn-grid"></div>
+
+                <!-- 穴埋め問題用の入力コンテナ -->
+                <div id="fill-in-the-blank-container" style="display: none;">
+                    <input type="text" id="fill-in-the-blank-input" placeholder="答えを入力してください">
                 </div>
 
-                <!-- 結果画面 -->
-                <div id="result-screen" class="screen" style="display: none;">
-                    <h2>クイズ結果</h2>
-                    <p id="score-text"></p>
-                    <p id="evaluation-text"></p>
-                    <p id="high-score-text"></p>
-                    <div id="incorrect-list-container" style="display: none;">
-                        <hr>
-                        <h3>復習しましょう</h3>
-                        <div id="incorrect-list"></div>
-                    </div>
-                    <div class="result-buttons">
-                        <button id="restart-btn">もう一度挑戦する</button>
-                        <button id="review-incorrect-btn" class="btn-secondary"
-                            style="display: none;">間違えた問題を復習</button>
-                        <button id="back-to-home-btn">ホームに戻る</button>
-                    </div>
-                </div>
+                <!-- 回答確定ボタン（複数選択・穴埋め問題で使用） -->
+                <button id="confirm-answer-btn" style="display: none; margin-top: 20px; width: 100%;">回答を確定する</button>
+
+                <!-- ▲▲▲ ここまでUI要素を整理・追加 ▲▲▲ -->
+
             </div>
+            <div id="explanation-container" style="display: none;">
+                <h3 id="feedback-title"></h3>
+                <img id="explanation-image" class="quiz-image" src="" alt="解説画像" style="display: none;">
+                <p id="explanation-text"></p>
+                <button id="next-question-btn">次の問題へ</button>
+            </div>
+        </div>
 
-            <!-- バージョンを更新してキャッシュをクリア -->
-            <script src="script-auth.js?v=20260117-002"></script>
-            <script src="script.js?v=20260117-002"></script>
-            <script src="script-announcements.js?v=20260117-002"></script>
+        <!-- 結果画面 -->
+        <div id="result-screen" class="screen" style="display: none;">
+            <h2>クイズ結果</h2>
+            <p id="score-text"></p>
+            <p id="evaluation-text"></p>
+            <p id="high-score-text"></p>
+            <div id="incorrect-list-container" style="display: none;">
+                <hr>
+                <h3>復習しましょう</h3>
+                <div id="incorrect-list"></div>
+            </div>
+            <div class="result-buttons">
+                <button id="restart-btn">もう一度挑戦する</button>
+                <button id="review-incorrect-btn" class="btn-secondary" style="display: none;">間違えた問題を復習</button>
+                <button id="back-to-home-btn">ホームに戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- バージョンを更新してキャッシュをクリア -->
+    <script src="script-auth.js?v=20260117-002"></script>
+    <script src="script.js?v=20260117-002"></script>
+    <script src="script-announcements.js?v=20260117-002"></script>
 </body>
 
 </html>
