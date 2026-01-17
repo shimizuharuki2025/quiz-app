@@ -58,11 +58,37 @@ app.get('/', (req, res) => {
 // 2. 静的ファイルの配信
 app.use(express.static(path.join(__dirname, 'public')));
 
+// --- ▼▼▼【セッション管理の設定】▼▼▼ ---
+// セッションファイル保存ディレクトリ
+const sessionsDir = path.join(__dirname, 'sessions');
+if (!fs.existsSync(sessionsDir)) {
+    fs.mkdirSync(sessionsDir, { recursive: true });
+    console.log(`✓ セッション保存ディレクトリを作成しました: ${sessionsDir}`);
+}
+
+app.use(session({
+    store: new FileStore({
+        path: sessionsDir,
+        ttl: 90 * 24 * 60 * 60, // 90日間（秒単位）
+        reapInterval: 24 * 60 * 60 // 1日ごとに期限切れセッションを削除
+    }),
+    secret: process.env.SESSION_SECRET || 'quiz-app-secret-key-2026',
+    resave: false, // セッションが変更されていない限り再保存しない
+    saveUninitialized: false, // 未初期化のセッションは保存しない
+    rolling: true, // アクセスごとにセッション有効期限を延長（自動延長機能）
+    cookie: {
+        maxAge: 90 * 24 * 60 * 60 * 1000, // 90日間（ミリ秒単位）
+        httpOnly: true, // XSS対策
+        secure: false // HTTPSの場合はtrueに変更
+    }
+}));
+console.log('✓ セッション管理を初期化しました（有効期限: 90日・自動延長）');
+// --- ▲▲▲【ここまで】▲▲▲ ---
+
 // --- ▼▼▼【Diskに保存された画像を配信】▼▼▼ ---
 // /uploads/ へのリクエストをDiskの画像ディレクトリから配信
 app.use('/uploads', express.static(uploadPath));
 // --- ▲▲▲【ここまで】 ▲▲▲ ---
-// --- ▲▲▲【ここまで】▲▲▲ ---
 
 // APIエンドポイント：クイズデータを取得する
 app.get('/api/quiz-data', (req, res) => {
