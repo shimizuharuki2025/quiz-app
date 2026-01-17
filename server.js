@@ -89,6 +89,13 @@ console.log('✓ セッション管理を初期化しました（有効期限: 9
 // /uploads/ へのリクエストをDiskの画像ディレクトリから配信
 app.use('/uploads', express.static(uploadPath));
 // --- ▲▲▲【ここまで】 ▲▲▲ ---
+// ミドルウェア：管理者チェック
+function requireAdmin(req, res, next) {
+    if (!req.session || !req.session.isAdmin) {
+        return res.status(403).json({ success: false, message: '管理者権限が必要です。' });
+    }
+    next();
+}
 
 // APIエンドポイント：クイズデータを取得する
 app.get('/api/quiz-data', (req, res) => {
