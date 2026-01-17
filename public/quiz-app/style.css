@@ -1,18 +1,21 @@
-/* --- 基本スタイル --- */
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Noto Sans JP', sans-serif;
     margin: 0;
-    background-color:#47B3FC;
+    background-color: #47B3FC;
     color: #333;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
     min-height: 100vh;
 }
 
 .app-container {
     width: 100%;
-    max-width: 800px; 
+    max-width: 800px;
     min-height: 100vh;
 }
 
@@ -21,12 +24,15 @@ body {
     box-sizing: border-box;
 }
 
-h1,h3 {
-    color:#FF0000;
+h1,
+h3 {
+    color: #FF0000;
 }
-h2, {
-    color:#707070;
+
+h2 {
+    color: #707070;
 }
+
 button {
     font-family: 'Noto Sans JP', sans-serif;
     font-size: 1em;
@@ -52,6 +58,7 @@ button:active {
     background-color: #E32B2B;
     color: #333;
 }
+
 .btn-secondary:hover {
     background-color: #bbb;
 }
@@ -134,7 +141,7 @@ button:active {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s ease-out, padding 0.4s ease-out;
-    background-color:#E0AC70;
+    background-color: #E0AC70;
 }
 
 .main-category.open .sub-category-list {
@@ -196,7 +203,7 @@ button:active {
     padding: 30px 40px;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     max-width: 400px;
 }
 
@@ -236,7 +243,7 @@ button:active {
     padding-top: 80px;
     background-color: white;
     border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .quiz-header {
@@ -277,7 +284,7 @@ button:active {
 
 #question-text {
     /* JavaScriptでサイズを制御するため、固定値は参考程度 */
-    font-size: 1.5rem; 
+    font-size: 1.5rem;
     margin-bottom: 30px;
     padding-top: 30px;
     line-height: 1.5;
@@ -301,7 +308,8 @@ button:active {
     /* 文字がはみ出さないように調整 */
     white-space: normal;
     word-wrap: break-word;
-    min-height: 60px; /* ボタンの高さをある程度確保 */
+    min-height: 60px;
+    /* ボタンの高さをある程度確保 */
 }
 
 .btn-grid button:hover {
@@ -353,7 +361,7 @@ button:active {
     text-align: center;
     background-color: white;
     border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 #score-text {
@@ -388,9 +396,11 @@ button:active {
     border-radius: 8px;
     margin-bottom: 10px;
 }
+
 .incorrect-q {
     margin: 0 0 10px 0;
 }
+
 .incorrect-a {
     margin: 0;
     color: #555;
@@ -414,7 +424,8 @@ button:active {
 }
 
 .btn-icon {
-    font-size: 1.2em; /* 少しサイズを調整 */
+    font-size: 1.2em;
+    /* 少しサイズを調整 */
     padding: 8px 12px;
     background-color: transparent;
     border: 2px solid #00a0e9;
@@ -467,46 +478,128 @@ button:active {
 /* --- レスポンシブ対応：スマートフォン向けスタイル --- */
 /* =============================================== */
 
-/* まずはアイコンを非表示に、テキストを表示（PCでのデフォルト） */
+/* =============================================== */
+/* --- レスポンシブ対応：スマートフォン向けスタイル --- */
+/* =============================================== */
+
+/* デフォルトでアイコンを非表示 */
 .button-icon {
     display: none;
 }
 
-/* 画面幅が600px以下の時に適用されるスタイル */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
 
-    /* ヘッダー全体の左右の余白を少し狭くして、窮屈さをなくす */
+    /* 全体コンテナ */
+    .app-container {
+        padding: 0;
+    }
+
+    /* ホーム画面 */
+    #home-screen {
+        padding: 20px 15px;
+    }
+
+    .home-header h1 {
+        font-size: 1.6em;
+    }
+
+    .home-header h2 {
+        font-size: 1.2em;
+    }
+
+    /* アコーディオンUI */
+    #accordion-container {
+        max-width: 100%;
+    }
+
+    .main-category-header {
+        padding: 12px 15px;
+        font-size: 1.1em;
+    }
+
+    .sub-category-item {
+        padding: 12px 15px;
+    }
+
+    .sub-category-item .name {
+        font-size: 1em;
+    }
+
+    /* クイズ画面 */
+    #quiz-screen {
+        margin: 0;
+        padding: 20px;
+        padding-top: 70px;
+        border-radius: 0;
+        min-height: 100vh;
+        box-shadow: none;
+    }
+
     .quiz-header {
         left: 15px;
         right: 15px;
-        gap: 5px; /* ボタン間の隙間を少し詰める */
+        top: 15px;
     }
 
-    /* 「第◯問」の文字がボタンに被らないように調整 */
-    #question-number {
-        font-size: 1.1em;
-        flex-shrink: 0; /* 縮まないようにする */
-        margin-right: 10px; /* 右側のボタンとの間に余白を確保 */
+    #question-text {
+        font-size: 1.2em !important;
+        /* JSで変更されても優先 */
+        margin-bottom: 20px;
     }
 
-    /* ボタン全体のパディング（内側の余白）を少し減らす */
-    .btn-secondary, .btn-icon {
-        padding: 8px 10px;
+    /* ボタンを1列に変更 */
+    .btn-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
-    /* 「中断してホームへ」ボタンの表示切り替え */
-    #quit-quiz-btn .button-text {
-        display: none; /* テキストを非表示に */
+    .btn-grid button {
+        padding: 15px;
+        font-size: 1em !important;
+        min-height: 50px;
     }
-    #quit-quiz-btn .button-icon {
-        display: inline; /* アイコンを表示 */
-        font-size: 1.4em; /* アイコンのサイズを少し大きくしてタップしやすくする */
+
+    /* 結果画面 */
+    #result-screen {
+        margin: 0;
+        padding: 30px 15px;
+        border-radius: 0;
+        min-height: 100vh;
     }
-    
-    /* 中断ボタン自体のサイズ感を調整 */
-    #quit-quiz-btn {
-        min-width: 44px; /* ボタンの最小幅を確保 */
-        text-align: center;
+
+    #score-text {
+        font-size: 2em;
+    }
+
+    .result-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .result-buttons button {
+        width: 100%;
+        margin: 0;
+        padding: 15px;
+    }
+
+    /* アイコンボタンの切り替え（中断ボタン等） */
+    .btn-icon .button-text {
+        display: none;
+    }
+
+    .btn-icon .button-icon {
+        display: inline;
+        font-size: 1.4em;
+    }
+
+    .btn-icon {
+        min-width: 44px;
+        height: 44px;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 }
 
@@ -516,10 +609,14 @@ button:active {
 
 /* 複数回答問題で選択されたボタンのスタイル */
 .btn-grid button.selected {
-    background-color: #00a0e9; /* 背景色を青くする */
-    color: white;             /* 文字色を白くする */
-    border-color: #007bbb;    /* 枠線の色を少し濃い青にする */
+    background-color: #00a0e9;
+    /* 背景色を青くする */
+    color: white;
+    /* 文字色を白くする */
+    border-color: #007bbb;
+    /* 枠線の色を少し濃い青にする */
 }
+
 /* ファイルの末尾に以下のコードを追記 */
 
 /* =============================================== */
@@ -547,5 +644,6 @@ button:active {
 
 /* 複数回答問題で選択されたボタンにホバーした時のスタイル */
 .btn-grid button.selected:hover {
-    background-color: #007bbb; /* 少し濃い青にする */
+    background-color: #007bbb;
+    /* 少し濃い青にする */
 }

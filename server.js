@@ -1,8 +1,11 @@
-//【確定版 v4】server.js - Disk自動初期化対応 + 画像もDiskに保存
+//【確定版 v5】server.js - ユーザー認証とセッション管理機能追加
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const bcrypt = require('bcryptjs');
+const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 
 const app = express();
 const port = process.env.PORT || 10000;
@@ -12,10 +15,21 @@ const DATA_DIR = process.env.RENDER_DISK_MOUNT_PATH || path.join(__dirname, 'pub
 const quizDataPath = path.join(DATA_DIR, 'quiz-data.json');
 const sourceDataPath = path.join(__dirname, 'public', 'quiz-app', 'quiz-data.json');
 
+// ユーザーデータと学習履歴のパス
+const usersDataPath = path.join(__dirname, 'data', 'users.json');
+const learningHistoryPath = path.join(__dirname, 'data', 'learning-history.json');
+
 // 画像保存先もDiskに変更
 const uploadPath = process.env.RENDER_DISK_MOUNT_PATH
     ? path.join(process.env.RENDER_DISK_MOUNT_PATH, 'uploads')
     : path.join(__dirname, 'public', 'uploads');
+
+// dataディレクトリが存在しない場合は作成
+const dataDir = path.join(__dirname, 'data');
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+    console.log(`✓ データディレクトリを作成しました: ${dataDir}`);
+}
 
 // Diskディレクトリが存在しない場合は作成
 if (!fs.existsSync(DATA_DIR)) {
@@ -51,6 +65,33 @@ const upload = multer({ storage: storage });
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
+
+// --- ▼▼▼【セッション管理の設定】▼▼▼ ---
+// セッションファイル保存ディレクトリ
+const sessionsDir = path.join(__dirname, 'sessions');
+if (!fs.existsSync(sessionsDir)) {
+    fs.mkdirSync(sessionsDir, { recursive: true });
+    console.log(`✓ セッション保存ディレクトリを作成しました: ${sessionsDir}`);
+}
+
+app.use(session({
+    store: new FileStore({
+        path: sessionsDir,
+        ttl: 90 * 24 * 60 * 60, // 90日間（秒単位）
+        reapInterval: 24 * 60 * 60 // 1日ごとに期限切れセッションを削除
+    }),
+    secret: process.env.SESSION_SECRET || 'quiz-app-secret-key-2026',
+    resave: false, // セッションが変更されていない限り再保存しない
+    saveUninitialized: false, // 未初期化のセッションは保存しない
+    rolling: true, // アクセスごとにセッション有効期限を延長（自動延長機能）
+    cookie: {
+        maxAge: 90 * 24 * 60 * 60 * 1000, // 90日間（ミリ秒単位）
+        httpOnly: true, // XSS対策
+        secure: false // HTTPSの場合はtrueに変更
+    }
+}));
+console.log('✓ セッション管理を初期化しました（有効期限: 90日・自動延長）');
+// --- ▲▲▲【ここまで】▲▲▲ ---
 
 // --- ▼▼▼【Diskに保存された画像を配信】▼▼▼ ---
 // /uploads/ へのリクエストをDiskの画像ディレクトリから配信
@@ -301,14 +342,16 @@ app.delete('/api/announcements/:id', (req, res) => {
 });
 
 
-app.listen(port, () => {
-    console.log(`========================================`);
-    console.log(`サーバーがポート ${port} で起動しました。`);
-    console.log(`データ保存先: ${quizDataPath}`);
-    console.log(`画像保存先: ${uploadPath}`);
-    console.log(`Disk機能: ${process.env.RENDER_DISK_MOUNT_PATH ? '有効 (/data)' : '無効 (ローカル)'}`);
-    console.log(`========================================`);
-});
+// ========================================
+// ユーザー認証と学習履歴API
+// ========================================
+require('./auth-api')(app, usersDataPath, learningHistoryPath);
+
+// ========================================
+// 管理者用ユーザー管理API
+// ========================================
+require('./admin-api')(app, usersDataPath, learningHistoryPath);
+
 // ========================================
 // バックアップダウンロード用API
 // ========================================
@@ -330,4 +373,13 @@ app.get('/api/backup', (req, res) => {
             // サーバー側のログに記録するだけで十分。
         }
     });
+});
+
+app.listen(port, () => {
+    console.log(`========================================`);
+    console.log(`サーバーがポート ${port} で起動しました。`);
+    console.log(`データ保存先: ${quizDataPath}`);
+    console.log(`画像保存先: ${uploadPath}`);
+    console.log(`Disk機能: ${process.env.RENDER_DISK_MOUNT_PATH ? '有効 (/data)' : '無効 (ローカル)'}`);
+    console.log(`========================================`);
 });

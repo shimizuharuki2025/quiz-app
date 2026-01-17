@@ -1,5 +1,13 @@
-// Version: 2026-01-12-004 - Fix fill-in-the-blank input disabled bug (2nd+ questions)
-window.onload = function () {
+// Version: 2026-01-15-001 - Add user authentication integration
+window.onload = async function () {
+
+    // ========================================
+    // ユーザー認証機能の初期化
+    // ========================================
+    if (typeof initializeAuth === 'function') {
+        await initializeAuth();
+        setupAuthEventListeners();
+    }
 
     const APP_PASSWORD = '3963';
 
@@ -71,7 +79,22 @@ window.onload = function () {
 
     function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]]; } return array; }
     function showScreen(screenName) { Object.values(screens).forEach(screen => screen.style.display = 'none'); if (screens[screenName]) screens[screenName].style.display = 'block'; }
-    function applyFontSize() { quizElements.questionText.style.fontSize = FONT_SIZE_LEVELS.question[currentFontSizeLevel]; quizElements.answerButtons.querySelectorAll('button').forEach(button => { button.style.fontSize = FONT_SIZE_LEVELS.answer[currentFontSizeLevel]; }); }
+    function applyFontSize() {
+        const questionSize = FONT_SIZE_LEVELS.question[currentFontSizeLevel];
+        const answerSize = FONT_SIZE_LEVELS.answer[currentFontSizeLevel];
+        quizElements.questionText.style.setProperty('font-size', questionSize, 'important');
+        quizElements.answerButtons.querySelectorAll('button').forEach(button => {
+            button.style.setProperty('font-size', answerSize, 'important');
+        });
+    }
+
+    // 画像パスの正規化ヘルパー
+    function getImageUrl(path) {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        if (path.startsWith('/')) return path; // ルートからの絶対パス
+        return `../${path}`; // 相対パス
+    }
 
     async function loadQuizData() {
         try {
@@ -79,8 +102,19 @@ window.onload = function () {
             if (!response.ok) throw new Error(`サーバーエラー (HTTP ${response.status})`);
             quizData = await response.json();
             if (!quizData || !Array.isArray(quizData.mainCategories)) throw new Error('データ形式が不正です。');
-            appPasswordElements.modal.style.display = 'flex';
-            appPasswordElements.input.focus();
+
+            // 認証初期化を確実に待ってからホーム画面を表示
+            if (typeof initializeAuth === 'function') {
+                await initializeAuth();
+            }
+
+            // ログイン済みユーザーまたはゲストモードの場合、パスワードモーダルをスキップ
+            if (window.currentUser || window.isGuestMode) {
+                initializeAndShowHomeScreen();
+            } else {
+                appPasswordElements.modal.style.display = 'flex';
+                appPasswordElements.input.focus();
+            }
         } catch (error) {
             console.error('クイズデータの読み込み失敗:', error);
             document.querySelector('.app-container').innerHTML = `<div style="text-align: center; padding: 40px;"><h1>エラー</h1><p>クイズデータの読み込みに失敗しました。</p><p style="color: red;">詳細: ${error.message}</p></div>`;
@@ -134,14 +168,7 @@ window.onload = function () {
         });
     }
 
-    // ▼▼▼ ここから startQuiz 関数を修正 ▼▼▼
     function startQuiz(subCategoryId, isReview = false) {
-        // --- ここからが重要な修正箇所 ---
-        // クイズ開始前に、穴埋め問題の入力欄の状態を完全にリセットする
-        quizElements.fillInTheBlankInput.disabled = false;
-        quizElements.fillInTheBlankInput.className = ''; // correct/incorrectクラスを削除
-        // --- ここまでが重要な修正箇所 ---
-
         let questionsToLoad;
         if (isReview) {
             if (!incorrectQuestions?.length) return alert('復習する問題がありません。');
@@ -158,7 +185,6 @@ window.onload = function () {
         showScreen('quiz');
         displayQuestion();
     }
-    // ▲▲▲ ここまで startQuiz 関数を修正 ▲▲▲
 
     function displayQuestion() {
         quizElements.explanationContainer.style.display = 'none';
@@ -166,11 +192,11 @@ window.onload = function () {
         quizElements.answerButtons.style.display = 'none';
         quizElements.fillInTheBlankContainer.style.display = 'none';
         quizElements.fillInTheBlankInput.value = '';
-        // *** バグ修正: 穴埋め問題の入力欄を完全にリセット ***
         quizElements.fillInTheBlankInput.disabled = false;
-        quizElements.fillInTheBlankInput.className = ''; // correct/incorrectクラスを削除
-        // *** ここまで修正 ***
+        quizElements.fillInTheBlankInput.className = '';
         quizElements.confirmAnswerBtn.style.display = 'none';
+
+        // イベントリスナーの蓄積を防ぐため、onclickを使用
         quizElements.confirmAnswerBtn.onclick = null;
 
         const question = currentQuestions[currentQuestionIndex];
@@ -179,8 +205,13 @@ window.onload = function () {
         quizElements.progressBar.style.width = `${((currentQuestionIndex + 1) / currentQuestions.length) * 100}%`;
         quizElements.questionNumber.textContent = `第${currentQuestionIndex + 1}問`;
         quizElements.questionText.textContent = question.question;
-        quizElements.questionImage.style.display = question.questionImage ? 'block' : 'none';
-        if (question.questionImage) quizElements.questionImage.src = `..${question.questionImage}`;
+
+        if (question.questionImage) {
+            quizElements.questionImage.src = getImageUrl(question.questionImage);
+            quizElements.questionImage.style.display = 'block';
+        } else {
+            quizElements.questionImage.style.display = 'none';
+        }
 
         switch (questionType) {
             case 'single':
@@ -200,10 +231,10 @@ window.onload = function () {
                 });
                 if (questionType === 'multiple') {
                     quizElements.confirmAnswerBtn.style.display = 'block';
-                    quizElements.confirmAnswerBtn.addEventListener('click', () => {
+                    quizElements.confirmAnswerBtn.onclick = () => {
                         const selectedButtons = quizElements.answerButtons.querySelectorAll('button.selected');
                         checkMultipleAnswers(selectedButtons);
-                    }, { once: true });
+                    };
                 }
                 break;
 
@@ -211,9 +242,9 @@ window.onload = function () {
                 quizElements.fillInTheBlankContainer.style.display = 'block';
                 quizElements.confirmAnswerBtn.style.display = 'block';
                 quizElements.fillInTheBlankInput.focus();
-                quizElements.confirmAnswerBtn.addEventListener('click', () => {
+                quizElements.confirmAnswerBtn.onclick = () => {
                     checkFillInTheBlankAnswer();
-                }, { once: true });
+                };
                 break;
         }
         applyFontSize();
@@ -291,8 +322,12 @@ window.onload = function () {
     }
 
     function showExplanation(question) {
-        quizElements.explanationImage.style.display = question.explanationImage ? 'block' : 'none';
-        if (question.explanationImage) quizElements.explanationImage.src = `..${question.explanationImage}`;
+        if (question.explanationImage) {
+            quizElements.explanationImage.src = getImageUrl(question.explanationImage);
+            quizElements.explanationImage.style.display = 'block';
+        } else {
+            quizElements.explanationImage.style.display = 'none';
+        }
         quizElements.explanationText.textContent = question.explanation;
         quizElements.explanationContainer.style.display = 'block';
         applyFontSize();
@@ -334,6 +369,27 @@ window.onload = function () {
                 item.innerHTML = `<p class="incorrect-q"><strong>Q.</strong> ${q.question}</p><p class="incorrect-a"><strong>A.</strong> ${q.explanation}</p>`;
                 resultElements.incorrectList.appendChild(item);
             });
+        }
+
+        // ========================================
+        // 学習記録を保存（ログインユーザーのみ）
+        // ========================================
+        if (typeof recordLearning === 'function') {
+            const selectedSubCategory = quizData.mainCategories
+                .flatMap(main => main.subCategories)
+                .find(sub => sub.id === selectedSubCategoryId);
+
+            if (selectedSubCategory) {
+                recordLearning({
+                    categoryId: selectedSubCategoryId,
+                    categoryName: selectedSubCategory.name,
+                    score: finalScore,
+                    totalQuestions: currentQuestions.length,
+                    correctAnswers: score
+                }).catch(err => {
+                    console.error('学習記録の保存に失敗しました:', err);
+                });
+            }
         }
     }
 

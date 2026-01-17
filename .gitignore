@@ -1,1 +1,11 @@
-node_modules\npublic/uploads/\n*.zip\n*.msi\n*.sha256\npackage-lock.json\n/public/quiz-app/quiz-data.json
+node_modules
+public/uploads/
+*.zip
+*.msi
+*.sha256
+package-lock.json
+/public/quiz-app/quiz-data.json
+# ユーザーデータとセッション（機密情報）
+/data/users.json
+/data/learning-history.json
+/sessions/
