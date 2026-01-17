@@ -56,13 +56,22 @@ function requireAdmin(req, res, next) {
     next();
 }
 
-module.exports = function (app, usersDataPath, learningHistoryPath) {
+module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath) {
 
     // 全ユーザー一覧を取得（管理者専用）
     app.get('/api/admin/users', requireAdmin, (req, res) => {
         try {
             const users = readUsers(usersDataPath);
             const history = readLearningHistory(learningHistoryPath);
+
+            // 店舗マスタを読み込む
+            let storeMaster = [];
+            try {
+                const quizData = JSON.parse(fs.readFileSync(quizDataPath, 'utf8'));
+                storeMaster = quizData.storeMaster || [];
+            } catch (e) {
+                console.error('店舗マスタの読み込み失敗:', e);
+            }
 
             // 各ユーザーの学習統計を含める
             const usersWithStats = users.map(user => {
@@ -72,11 +81,16 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
                     bestScore: 0
                 };
 
+                // 店舗名を特定
+                const store = storeMaster.find(s => s.code === user.storeCode);
+                const storeName = store ? store.name : '店舗不明';
+
                 // パスワードハッシュを除外
                 const { passwordHash, ...userWithoutPassword } = user;
 
                 return {
                     ...userWithoutPassword,
+                    storeName,
                     statistics: {
                         totalQuizzes: userHistory.totalQuizzes,
                         averageScore: userHistory.averageScore,
@@ -96,6 +110,31 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
                 success: false,
                 message: 'サーバーエラーが発生しました。'
             });
+        }
+    });
+
+    // 店舗マスタを取得
+    app.get('/api/admin/stores', requireAdmin, (req, res) => {
+        try {
+            const quizData = JSON.parse(fs.readFileSync(quizDataPath, 'utf8'));
+            res.json({ success: true, stores: quizData.storeMaster || [] });
+        } catch (error) {
+            res.status(500).json({ success: false, message: '店舗情報の取得に失敗しました。' });
+        }
+    });
+
+    // 店舗マスタを保存
+    app.post('/api/admin/stores', requireAdmin, (req, res) => {
+        const { stores } = req.body;
+        if (!Array.isArray(stores)) return res.status(400).json({ success: false, message: 'データ形式が不正です。' });
+
+        try {
+            const quizData = JSON.parse(fs.readFileSync(quizDataPath, 'utf8'));
+            quizData.storeMaster = stores;
+            fs.writeFileSync(quizDataPath, JSON.stringify(quizData, null, 2), 'utf8');
+            res.json({ success: true, message: '店舗マスタを保存しました。' });
+        } catch (error) {
+            res.status(500).json({ success: false, message: '店舗マスタの保存に失敗しました。' });
         }
     });
 
@@ -277,6 +316,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
     // ユーザーをバン（管理者専用）
     app.put('/api/admin/users/:userId/ban', requireAdmin, (req, res) => {
         const { userId } = req.params;
+        const { reason } = req.body;
 
         try {
             const users = readUsers(usersDataPath);
@@ -290,6 +330,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
             }
 
             users[userIndex].isBanned = true;
+            users[userIndex].banReason = reason || '管理者により停止されました。';
 
             if (!writeUsers(usersDataPath, users)) {
                 return res.status(500).json({

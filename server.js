@@ -397,7 +397,7 @@ require('./auth-api')(app, usersDataPath, learningHistoryPath);
 // ========================================
 // 管理者用ユーザー管理API
 // ========================================
-require('./admin-api')(app, usersDataPath, learningHistoryPath);
+require('./admin-api')(app, usersDataPath, learningHistoryPath, quizDataPath);
 
 // ========================================
 // バックアップダウンロード用API

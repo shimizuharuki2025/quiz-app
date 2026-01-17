@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const userListBody = document.getElementById('user-list-body');
     const loadingSpinner = document.getElementById('loading-spinner');
     const userTableContainer = document.getElementById('user-table-container');
+    const searchInput = document.getElementById('user-search-input');
+    const sortSelect = document.getElementById('user-sort-select');
+
+    let allUsers = []; // 全ユーザー（検索・ソート用）
+    let currentFilteredUsers = [];
 
     // 認証処理
     authForm.addEventListener('submit', async (e) => {
@@ -45,7 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (data.success) {
-                renderUserList(data.users);
+                allUsers = data.users;
+                applySearchAndSort();
             } else {
                 alert('ユーザー一覧の取得に失敗しました: ' + data.message);
             }
@@ -58,12 +64,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // 検索とソートを適用
+    function applySearchAndSort() {
+        const query = searchInput.value.toLowerCase();
+        const sortType = sortSelect.value;
+
+        // 検索フィルタリング
+        currentFilteredUsers = allUsers.filter(user => {
+            return (
+                user.name.toLowerCase().includes(query) ||
+                user.employeeCode.includes(query) ||
+                user.storeCode.includes(query) ||
+                (user.storeName && user.storeName.toLowerCase().includes(query))
+            );
+        });
+
+        // サーバー側の統計データを利用してソート
+        currentFilteredUsers.sort((a, b) => {
+            switch (sortType) {
+                case 'oldest':
+                    return new Date(a.createdAt) - new Date(b.createdAt);
+                case 'name':
+                    return a.name.localeCompare(b.name, 'ja');
+                case 'play-count':
+                    return b.statistics.totalQuizzes - a.statistics.totalQuizzes;
+                case 'store':
+                    return a.storeCode.localeCompare(b.storeCode);
+                case 'newest':
+                default:
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+            }
+        });
+
+        renderUserList(currentFilteredUsers);
+    }
+
+    searchInput.addEventListener('input', applySearchAndSort);
+    sortSelect.addEventListener('change', applySearchAndSort);
+
     // ユーザー一覧の描画
     function renderUserList(users) {
         userListBody.innerHTML = '';
 
         if (users.length === 0) {
-            userListBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">ユーザーが登録されていません。</td></tr>';
+            userListBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">ユーザーが見つかりません。</td></tr>';
             return;
         }
 
@@ -75,8 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${user.employeeCode}</td>
                 <td>${user.name}</td>
                 <td>${user.storeCode}</td>
+                <td>${user.storeName || '店舗不明'}</td>
                 <td>
-                    <span class="status-badge ${isBanned ? 'status-banned' : 'status-active'}">
+                    <span class="status-badge ${isBanned ? 'status-banned' : 'status-active'}" title="${isBanned ? '理由: ' + (user.banReason || 'なし') : ''}">
                         ${isBanned ? 'バン済み' : '有効'}
                     </span>
                 </td>
@@ -103,26 +148,52 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = () => deleteUser(btn.dataset.id));
     }
 
-    // バン切り替え
-    async function toggleBan(userId, currentBanned) {
-        const action = currentBanned ? 'unban' : 'ban';
-        const actionText = currentBanned ? '解除' : 'バン（停止）';
+    // バン切り替え（理由入力付き）
+    let currentBanTargetId = null;
 
-        showCustomConfirm(`ユーザーを${actionText}しますか？`, async () => {
-            try {
-                const response = await fetch(`/api/admin/users/${userId}/${action}`, { method: 'PUT' });
-                const data = await response.json();
-                if (data.success) {
-                    loadUsers();
-                } else {
-                    alert('エラー: ' + data.message);
+    function toggleBan(userId, currentBanned) {
+        if (currentBanned) {
+            // 解除は確認のみ
+            showCustomConfirm('このユーザーの利用停止を解除しますか？', async () => {
+                try {
+                    const response = await fetch(`/api/admin/users/${userId}/unban`, { method: 'PUT' });
+                    const data = await response.json();
+                    if (data.success) loadUsers();
+                } catch (e) {
+                    alert('解除に失敗しました。');
                 }
-            } catch (error) {
-                console.error('Ban error:', error);
-                alert('通信に失敗しました。');
-            }
-        });
+            });
+        } else {
+            // バンは理由を入力
+            currentBanTargetId = userId;
+            document.getElementById('ban-reason-input').value = '';
+            document.getElementById('ban-reason-modal').style.display = 'flex';
+        }
     }
+
+    document.getElementById('confirm-ban-btn').onclick = async () => {
+        const reason = document.getElementById('ban-reason-input').value;
+        try {
+            const response = await fetch(`/api/admin/users/${currentBanTargetId}/ban`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason })
+            });
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('ban-reason-modal').style.display = 'none';
+                loadUsers();
+            } else {
+                alert('エラー: ' + data.message);
+            }
+        } catch (e) {
+            alert('通信に失敗しました。');
+        }
+    };
+
+    document.getElementById('close-ban-modal-btn').onclick = () => {
+        document.getElementById('ban-reason-modal').style.display = 'none';
+    };
 
     // ユーザー削除
     async function deleteUser(userId) {
@@ -192,6 +263,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('close-modal-btn').onclick = () => {
         document.getElementById('edit-user-modal').style.display = 'none';
+    };
+
+    // --- 店舗マスタ管理 ---
+    const storesModal = document.getElementById('stores-modal');
+    const storeListBody = document.getElementById('store-list-body');
+
+    document.getElementById('open-stores-btn').onclick = async () => {
+        renderStoreList(); // まずはモーダルを開いてから
+        storesModal.style.display = 'flex';
+
+        try {
+            const res = await fetch('/api/admin/stores');
+            const data = await res.json();
+            if (data.success) {
+                renderStoreList(data.stores);
+            }
+        } catch (e) {
+            console.error('店舗マスタ取得エラー:', e);
+        }
+    };
+
+    function renderStoreList(stores = []) {
+        storeListBody.innerHTML = '';
+        if (stores.length === 0) {
+            addStoreRow(); // 最初から1行出す
+        } else {
+            stores.forEach(s => addStoreRow(s.code, s.name));
+        }
+    }
+
+    function addStoreRow(code = '', name = '') {
+        const div = document.createElement('div');
+        div.className = 'store-item';
+        div.innerHTML = `
+            <input type="text" placeholder="コード (例: 001)" value="${code}" style="width: 100px;">
+            <input type="text" placeholder="店舗名 (例: 新宿店)" value="${name}" style="flex: 1;">
+            <button class="btn-danger btn-small delete-store-row">削除</button>
+        `;
+        div.querySelector('.delete-store-row').onclick = () => div.remove();
+        storeListBody.appendChild(div);
+    }
+
+    document.getElementById('add-store-row-btn').onclick = () => addStoreRow();
+
+    document.getElementById('save-stores-btn').onclick = async () => {
+        const rows = storeListBody.querySelectorAll('.store-item');
+        const stores = Array.from(rows).map(row => {
+            const inputs = row.querySelectorAll('input');
+            return { code: inputs[0].value, name: inputs[1].value };
+        }).filter(s => s.code && s.name); // 両方空でないもののみ
+
+        try {
+            const res = await fetch('/api/admin/stores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stores })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('店舗マスタを更新しました。');
+                storesModal.style.display = 'none';
+                loadUsers(); // 店舗名表示を更新するために再読み込み
+            }
+        } catch (e) {
+            alert('保存に失敗しました。');
+        }
+    };
+
+    document.getElementById('close-stores-btn').onclick = () => {
+        storesModal.style.display = 'none';
     };
 
     // カスタム確認ダイアログ

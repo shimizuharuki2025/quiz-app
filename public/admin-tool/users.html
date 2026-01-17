@@ -91,6 +91,68 @@
             color: #666;
         }
 
+        /* 検索・ソートコントロール */
+        .list-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 35px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 20px;
+        }
+
+        .sort-box select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        /* 店舗マスタ管理用 */
+        .stores-btn-container {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .store-list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 1px solid #eee;
+        }
+
+        .store-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .store-item input {
+            padding: 5px 8px;
+        }
+
         /* 編集モーダルのワイド化とカラム化 */
         .edit-modal-wide {
             max-width: 900px !important;
@@ -153,6 +215,30 @@
                 アカウントの停止（バン）、情報の編集、学習記録の確認ができます。
             </p>
 
+            <div class="stores-btn-container">
+                <button id="open-stores-btn" class="btn-secondary">
+                    <span class="material-icons" style="vertical-align: middle; font-size: 18px;">store</span>
+                    店舗マスタを管理
+                </button>
+            </div>
+
+            <div class="list-controls">
+                <div class="search-box">
+                    <span class="material-icons search-icon">search</span>
+                    <input type="text" id="user-search-input" placeholder="名前・従業員コードで検索...">
+                </div>
+                <div class="sort-box">
+                    <label for="user-sort-select">並び替え:</label>
+                    <select id="user-sort-select">
+                        <option value="newest">登録時期順（新しい順）</option>
+                        <option value="oldest">登録時期順（古い順）</option>
+                        <option value="name">50音順</option>
+                        <option value="play-count">プレイした問題が多い順</option>
+                        <option value="store">店舗順</option>
+                    </select>
+                </div>
+            </div>
+
             <div id="loading-spinner" style="text-align: center; padding: 20px;">
                 <div class="spinner" style="display: inline-block;"></div>
                 <p>データを読み込み中...</p>
@@ -164,7 +250,8 @@
                         <tr>
                             <th>従業員コード</th>
                             <th>名前</th>
-                            <th>店舗</th>
+                            <th>店舗コード</th>
+                            <th>店舗名</th>
                             <th>ステータス</th>
                             <th>学習状況</th>
                             <th>操作</th>
@@ -218,6 +305,41 @@
             <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
                 <button id="save-user-btn" class="btn-primary">保存する</button>
                 <button id="close-modal-btn" class="btn-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 店舗マスタ管理モーダル -->
+    <div id="stores-modal" class="modal-background" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2>店舗マスタの管理</h2>
+            <p class="description">店舗コードと店舗名の対応を登録します。</p>
+
+            <div class="store-list-container" id="store-list-body">
+                <!-- ここに店舗リストが追加される -->
+            </div>
+
+            <button id="add-store-row-btn" class="btn-secondary btn-small" style="margin-bottom: 20px;">
+                <span class="material-icons" style="font-size: 16px; vertical-align: middle;">add</span> 新しい店舗を追加
+            </button>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="save-stores-btn" class="btn-primary">保存する</button>
+                <button id="close-stores-btn" class="btn-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- バン理由入力モーダル -->
+    <div id="ban-reason-modal" class="modal-background" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2>アカウントの停止</h2>
+            <p>停止する理由を入力してください。</p>
+            <textarea id="ban-reason-input" placeholder="例: 規約違反のため"
+                style="width: 100%; height: 100px; padding: 10px; margin: 15px 0;"></textarea>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="confirm-ban-btn" class="btn-danger">停止（バン）を実行</button>
+                <button id="close-ban-modal-btn" class="btn-secondary">キャンセル</button>
             </div>
         </div>
     </div>

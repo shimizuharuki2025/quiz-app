@@ -202,7 +202,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
             if (user.isBanned) {
                 return res.status(403).json({
                     success: false,
-                    message: 'このアカウントは停止されています。管理者にお問い合わせください。'
+                    message: `このアカウントは停止されています。\n理由: ${user.banReason || '管理者にお問い合わせください。'}`
                 });
             }
 
@@ -339,7 +339,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
                 req.session.destroy();
                 return res.status(403).json({
                     success: false,
-                    message: 'このアカウントは停止されています。'
+                    message: `このアカウントは停止されています。\n理由: ${user.banReason || '管理者にお問い合わせください。'}`
                 });
             }
 

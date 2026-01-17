@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // エラーメッセージを表示
     function showError(message) {
-        errorMessage.textContent = message;
+        errorMessage.innerText = message;
         errorMessage.style.display = 'block';
 
         // 3秒後に非表示
