@@ -153,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('edit-employee-code').value = user.employeeCode;
                 document.getElementById('edit-store-code').value = user.storeCode;
                 document.getElementById('edit-user-name').value = user.name;
+                document.getElementById('edit-user-password').value = ''; // 常にクリアしておく
                 document.getElementById('edit-user-modal').style.display = 'flex';
             }
         } catch (error) {
@@ -165,7 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const payload = {
             employeeCode: document.getElementById('edit-employee-code').value,
             storeCode: document.getElementById('edit-store-code').value,
-            name: document.getElementById('edit-user-name').value
+            name: document.getElementById('edit-user-name').value,
+            password: document.getElementById('edit-user-password').value // パスワードを追加
         };
 
         try {

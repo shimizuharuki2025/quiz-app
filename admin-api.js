@@ -3,6 +3,7 @@
 // ========================================
 
 const fs = require('fs');
+const bcrypt = require('bcryptjs');
 
 // ヘルパー関数（auth-api.jsと同じものを再利用）
 function readUsers(usersDataPath) {
@@ -189,6 +190,13 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
             if (employeeCode) users[userIndex].employeeCode = employeeCode;
             if (storeCode) users[userIndex].storeCode = storeCode;
             if (name) users[userIndex].name = name;
+
+            // パスワードの変更（新しいパスワードが含まれている場合）
+            if (req.body.password && req.body.password.length > 0) {
+                const salt = bcrypt.genSaltSync(10);
+                users[userIndex].passwordHash = bcrypt.hashSync(req.body.password, salt);
+                console.log('ユーザーのパスワードを更新しました:', userId);
+            }
 
             if (!writeUsers(usersDataPath, users)) {
                 return res.status(500).json({
