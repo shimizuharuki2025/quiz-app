@@ -42,6 +42,19 @@ if (!fs.existsSync(quizDataPath)) {
 }
 // --- ▲▲▲【ここまで】▲▲▲ ---
 
+// ヘルパー関数
+function readUsers(usersDataPath) {
+    if (!fs.existsSync(usersDataPath)) return [];
+    try {
+        const data = fs.readFileSync(usersDataPath, 'utf8');
+        const parsed = JSON.parse(data);
+        return parsed.users || [];
+    } catch (err) {
+        console.error('ユーザーデータの読み込みエラー:', err);
+        return [];
+    }
+}
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadPath),
     filename: (req, file, cb) => cb(null, `image-${Date.now()}-${Math.floor(Math.random() * 1E9)}${path.extname(file.originalname)}`)
