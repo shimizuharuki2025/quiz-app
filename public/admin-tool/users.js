@@ -120,8 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.innerHTML = `
                 <td>${user.employeeCode}</td>
                 <td>${user.name}</td>
-                <td>${user.storeCode}</td>
-                <td>${user.storeName || '店舗不明'}</td>
+                <td>${user.storeName || '店舗不明'} (${user.storeCode})</td>
                 <td>
                     <label class="switch">
                         <input type="checkbox" class="admin-toggle" data-id="${user.id}" ${isAdmin ? 'checked' : ''}>
