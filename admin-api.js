@@ -131,7 +131,9 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
     // 店舗マスタを保存
     app.post('/api/admin/stores', requireAdmin, (req, res) => {
         const { stores } = req.body;
-        if (!Array.isArray(stores)) return res.status(400).json({ success: false, message: 'データ形式が不正です。' });
+        if (!stores || !Array.isArray(stores)) {
+            return res.status(400).json({ success: false, message: '無効な店舗データです。' });
+        }
 
         try {
             const quizData = JSON.parse(fs.readFileSync(quizDataPath, 'utf8'));
@@ -140,6 +142,31 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
             res.json({ success: true, message: '店舗マスタを保存しました。' });
         } catch (error) {
             res.status(500).json({ success: false, message: '店舗マスタの保存に失敗しました。' });
+        }
+    });
+
+    // 管理者権限を切り替えるAPI
+    app.put('/api/admin/users/:userId/admin-status', requireAdmin, (req, res) => {
+        const { userId } = req.params;
+        const { isAdmin } = req.body;
+
+        try {
+            const users = readUsers(usersDataPath);
+            const userIndex = users.findIndex(u => u.id === userId);
+
+            if (userIndex === -1) {
+                return res.status(404).json({ success: false, message: 'ユーザーが見つかりません。' });
+            }
+
+            // 権限を更新
+            users[userIndex].isAdmin = !!isAdmin;
+            writeUsers(usersDataPath, users);
+
+            console.log(`管理者権限を更新しました: ${users[userIndex].employeeCode} -> ${isAdmin}`);
+            res.json({ success: true, message: '管理者権限を更新しました。' });
+        } catch (error) {
+            console.error('管理者権限更新エラー:', error);
+            res.status(500).json({ success: false, message: 'サーバーエラーが発生しました。' });
         }
     });
 
