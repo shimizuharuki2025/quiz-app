@@ -64,7 +64,7 @@ window.onload = async function () {
         incorrectList: document.getElementById('incorrect-list'),
     };
     const i18nElements = {
-        translateBtn: document.getElementById('translate-btn'),
+        translateBtn: document.getElementById('translate-btn-global'),
         languageModal: document.getElementById('language-modal'),
         languageCancelBtn: document.getElementById('language-cancel'),
         langOptionBtns: document.querySelectorAll('.lang-option-btn'),
@@ -142,7 +142,7 @@ window.onload = async function () {
             mainCategoryDiv.className = 'main-category';
             const header = document.createElement('div');
             header.className = 'main-category-header';
-            header.textContent = mainCategory.name;
+            updateTranslatedElement(header, mainCategory.name);
             header.addEventListener('click', () => mainCategoryDiv.classList.toggle('open'));
             mainCategoryDiv.appendChild(header);
             const subList = document.createElement('div');
@@ -171,8 +171,15 @@ window.onload = async function () {
                     item.innerHTML = `
                         <div class="icon" style="background-color: ${subCategory.color || '#cccccc'};"></div>
                         ${badgeHtml}
-                        <div class="name">${subCategory.name}</div>
-                        <div class="highscore">HS: ${highScore}点</div>`;
+                        <div class="name"></div>
+                        <div class="highscore"></div>`;
+
+                    const nameEl = item.querySelector('.name');
+                    const hsEl = item.querySelector('.highscore');
+                    updateTranslatedElement(nameEl, subCategory.name);
+
+                    const hsLabel = currentLanguage === 'ja' ? '点' : ' pts';
+                    hsEl.textContent = `HS: ${highScore}${hsLabel}`;
 
                     item.addEventListener('click', () => {
                         if (isRestrictedForGuest) {
@@ -469,12 +476,44 @@ window.onload = async function () {
             i18nElements.languageModal.style.display = 'none';
             console.log('Language changed to:', lang);
 
-            // 現在の画面の翻訳を更新
-            if (screens.quiz.style.display === 'block') {
-                updateAllCurrentQuizTexts();
-            }
+            // 全体の翻訳を更新
+            updateAllGlobalUITexts();
         });
     });
+
+    const homeI18nMap = {
+        'home-title': 'トレーニングアプリ',
+        'home-subtitle': '業務・マニュアルクイズ',
+        'home-warning-title': 'このアプリはグループ外秘です 。',
+        'home-warning-1': 'SNS等への投稿は一切禁止です。',
+        'home-warning-2': '部外者・退職者のアクセスも禁止です。',
+        'home-warning-3': '（アクセスログは管理をしています。）',
+        'home-warning-4': '問題は、問題制作時の社内規定やマニュアルを参考に作成しています。'
+    };
+
+    async function updateAllGlobalUITexts() {
+        // UIボタン類
+        updateTranslatedElement(document.getElementById('view-history-btn'), '学習履歴');
+        updateTranslatedElement(document.getElementById('open-user-password-modal-btn'), 'パスワード変更');
+        updateTranslatedElement(document.getElementById('logout-btn'), 'ログアウト');
+        updateTranslatedElement(document.getElementById('translate-btn-global'), '言語選択 (Language)');
+
+        // ホーム画面の固定テキスト
+        Object.entries(homeI18nMap).forEach(([id, text]) => {
+            const el = document.getElementById(id);
+            if (el) updateTranslatedElement(el, text);
+        });
+
+        // カテゴリ一覧の再生成（翻訳反映のため）
+        if (screens.home.style.display === 'block') {
+            initializeAndShowHomeScreen();
+        }
+
+        // クイズ中の場合は現在の問題を再翻訳
+        if (screens.quiz.style.display === 'block') {
+            updateAllCurrentQuizTexts();
+        }
+    }
 
     async function updateTranslatedElement(element, originalText) {
         if (currentLanguage === 'ja' || !originalText) {

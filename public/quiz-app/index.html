@@ -146,6 +146,7 @@
             <span>👤 <strong id="user-name"></strong> さん</span>
         </div>
         <div class="user-buttons">
+            <button id="translate-btn-global" style="background: #4A90E2;">🌐 言語選択 (Language)</button>
             <button id="view-history-btn" style="background: #2196f3;">📊 学習履歴</button>
             <button id="open-user-password-modal-btn" style="background: #ff9800;">🔑 パスワード変更</button>
             <button id="logout-btn">ログアウト</button>
@@ -204,13 +205,13 @@
         <div id="home-screen" class="screen" style="display: none;">
             <div class="home-header">
                 <img src="lawson_logo.png" alt="LAWSON Logo" class="logo">
-                <h1>トレーニングアプリ</h1>
-                <h2>業務・マニュアルクイズ</h2>
-                <h3>このアプリはグループ外秘です 。</h3>
-                <p>SNS等への投稿は一切禁止です。</p>
-                <p>部外者・退職者のアクセスも禁止です。</p>
-                <p>（アクセスログは管理をしています。）</p>
-                <p>問題は、問題制作時の社内規定やマニュアルを参考に作成しています。</p>
+                <h1 id="home-title">トレーニングアプリ</h1>
+                <h2 id="home-subtitle">業務・マニュアルクイズ</h2>
+                <h3 id="home-warning-title">このアプリはグループ外秘です 。</h3>
+                <p id="home-warning-1">SNS等への投稿は一切禁止です。</p>
+                <p id="home-warning-2">部外者・退職者のアクセスも禁止です。</p>
+                <p id="home-warning-3">（アクセスログは管理をしています。）</p>
+                <p id="home-warning-4">問題は、問題制作時の社内規定やマニュアルを参考に作成しています。</p>
             </div>
 
             <!-- お知らせバナー -->
@@ -258,10 +259,6 @@
                                 <span class="button-icon">+</span>
                             </button>
                         </div>
-                        <button id="translate-btn" class="btn-icon" title="言語を切り替える / Translate">
-                            <span class="button-text">翻訳</span>
-                            <span class="button-icon">🌐</span>
-                        </button>
                         <button id="mute-btn" class="btn-icon" title="音声のオン/オフ">
                             <span class="button-text">音量</span>
                             <span class="button-icon">🔊</span>
