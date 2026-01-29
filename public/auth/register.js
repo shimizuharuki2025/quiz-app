@@ -27,6 +27,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (employeeCode.length < 6) {
+            showError('従業員コードは6桁以上で入力してください。');
+            return;
+        }
+
+        if (storeCode.length !== 6) {
+            showError('店舗コードは6桁で入力してください。');
+            return;
+        }
+
         if (password.length < 4) {
             showError('パスワードは4文字以上で設定してください。');
             return;

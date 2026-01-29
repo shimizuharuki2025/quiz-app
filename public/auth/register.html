@@ -25,16 +25,16 @@
             <form id="register-form" class="auth-form">
                 <div class="form-group">
                     <label for="employee-code">従業員コード</label>
-                    <input type="text" id="employee-code" name="employeeCode" pattern="[0-9]*" inputmode="numeric"
-                        placeholder="数字のみ入力" required autocomplete="username">
-                    <small>数字のみで入力してください</small>
+                    <input type="text" id="employee-code" name="employeeCode" pattern="[0-9]{6,}" inputmode="numeric"
+                        placeholder="6桁以上の数字" required autocomplete="username">
+                    <small>6桁以上の数字で入力してください</small>
                 </div>
 
                 <div class="form-group">
                     <label for="store-code">店舗コード</label>
-                    <input type="text" id="store-code" name="storeCode" pattern="[0-9]*" inputmode="numeric"
-                        placeholder="数字のみ入力" required>
-                    <small>数字のみで入力してください</small>
+                    <input type="text" id="store-code" name="storeCode" pattern="[0-9]{6}" inputmode="numeric"
+                        placeholder="6桁の数字" required>
+                    <small>6桁の数字で入力してください</small>
                 </div>
 
                 <div class="form-group">
