@@ -469,9 +469,10 @@ window.onload = async function () {
         });
     }
 
-    i18nElements.langOptionBtns.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const lang = btn.dataset.lang;
+    // 言語選択ボタンのイベント（動的に要素を取得するように変更）
+    document.addEventListener('click', (e) => {
+        if (e.target && e.target.classList.contains('lang-option-btn')) {
+            const lang = e.target.dataset.lang;
             currentLanguage = lang;
             i18nElements.languageModal.style.display = 'none';
             console.log('Language changed to:', lang);
@@ -482,7 +483,7 @@ window.onload = async function () {
             } else {
                 updateAllGlobalUITexts();
             }
-        });
+        }
     });
 
     const homeI18nMap = {
