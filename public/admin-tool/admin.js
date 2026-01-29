@@ -370,6 +370,8 @@ async function handleImageUpload(file, questionIndex, imageType) {
 // --- イベントリスナーの初期化 ---
 document.addEventListener('DOMContentLoaded', () => {
     const authForm = document.getElementById('auth-form');
+    const authContainer = document.getElementById('auth-container');
+    const adminContent = document.getElementById('admin-content');
     const addMainCategoryBtn = document.getElementById('add-main-category-btn');
     const deleteSubCategoryBtn = document.getElementById('delete-sub-category-btn');
     const addQuestionBtn = document.getElementById('add-question-btn');
