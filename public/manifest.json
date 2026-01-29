@@ -1,6 +1,6 @@
 {
-    "name": "K'sプランニング トレーニングツール",
-    "short_name": "KSRトレーニング",
+    "name": "K'sプランニングトレーニングツール",
+    "short_name": "K'sトレーニング",
     "description": "ローソン クルー向けトレーニングクイズアプリ",
     "start_url": "/index.html",
     "display": "standalone",
