@@ -126,14 +126,19 @@
 
             .user-info-bar .user-buttons {
                 width: 100%;
-                justify-content: center;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
             }
 
             .user-info-bar button {
-                flex: 1;
-                min-width: 120px;
-                padding: 12px 16px;
-                font-size: 15px;
+                width: 100%;
+                min-width: 0;
+                /* flex/grid内での縮小を許可 */
+                padding: 10px 8px;
+                font-size: 13px;
+                min-height: 48px;
+                /* スマホで押しやすいサイズ */
             }
 
             .guest-info-bar {
