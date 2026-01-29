@@ -63,6 +63,12 @@ window.onload = async function () {
         incorrectListContainer: document.getElementById('incorrect-list-container'),
         incorrectList: document.getElementById('incorrect-list'),
     };
+    const i18nElements = {
+        translateBtn: document.getElementById('translate-btn'),
+        languageModal: document.getElementById('language-modal'),
+        languageCancelBtn: document.getElementById('language-cancel'),
+        langOptionBtns: document.querySelectorAll('.lang-option-btn'),
+    };
 
     let quizData = null;
     let currentQuestions = [];
@@ -72,6 +78,8 @@ window.onload = async function () {
     let selectedSubCategoryId = null;
     let isSoundEnabled = localStorage.getItem('isSoundEnabled') !== 'false';
     let currentFontSizeLevel = 1;
+    let currentLanguage = 'ja';
+    let translationCache = {}; // セッション内でのキャッシュ
     const FONT_SIZE_LEVELS = {
         question: ['1.2rem', '1.5rem', '1.8rem'],
         answer: ['0.9rem', '1.1rem', '1.3rem']
@@ -226,7 +234,10 @@ window.onload = async function () {
 
         quizElements.progressBar.style.width = `${((currentQuestionIndex + 1) / currentQuestions.length) * 100}%`;
         quizElements.questionNumber.textContent = `第${currentQuestionIndex + 1}問`;
-        quizElements.questionText.textContent = question.question;
+
+        // 言語に応じた問題文の表示
+        const baseQuestionText = question.question;
+        updateTranslatedElement(quizElements.questionText, baseQuestionText);
 
         if (question.questionImage) {
             quizElements.questionImage.src = getImageUrl(question.questionImage);
@@ -242,8 +253,8 @@ window.onload = async function () {
                 const shuffledAnswers = shuffleArray([...question.answers]);
                 shuffledAnswers.forEach(answer => {
                     const button = document.createElement('button');
-                    button.textContent = answer.text;
-                    button.dataset.text = answer.text;
+                    button.dataset.originalText = answer.text;
+                    updateTranslatedElement(button, answer.text);
                     if (questionType === 'multiple') {
                         button.addEventListener('click', () => button.classList.toggle('selected'));
                     } else {
@@ -287,7 +298,7 @@ window.onload = async function () {
             incorrectQuestions.push(question);
             const correctButton = Array.from(quizElements.answerButtons.children).find(btn => {
                 const originalCorrectAnswer = question.answers.find(a => a.correct);
-                return btn.dataset.text === originalCorrectAnswer.text;
+                return btn.dataset.originalText === originalCorrectAnswer.text;
             });
             if (correctButton) correctButton.classList.add('correct');
         }
@@ -299,7 +310,7 @@ window.onload = async function () {
         quizElements.confirmAnswerBtn.style.display = 'none';
         const question = currentQuestions[currentQuestionIndex];
         const correctAnswers = question.answers.filter(a => a.correct).map(a => a.text);
-        const selectedAnswers = Array.from(selectedButtons).map(btn => btn.dataset.text);
+        const selectedAnswers = Array.from(selectedButtons).map(btn => btn.dataset.originalText);
         const isPerfectlyCorrect = correctAnswers.length === selectedAnswers.length && correctAnswers.every(ans => selectedAnswers.includes(ans));
         if (isPerfectlyCorrect) {
             score++;
@@ -311,7 +322,7 @@ window.onload = async function () {
             quizElements.feedbackTitle.textContent = '不正解...';
             incorrectQuestions.push(question);
             quizElements.answerButtons.querySelectorAll('button').forEach(btn => {
-                const answerText = btn.dataset.text;
+                const answerText = btn.dataset.originalText;
                 const isCorrectChoice = correctAnswers.includes(answerText);
                 const wasSelected = selectedAnswers.includes(answerText);
                 if (isCorrectChoice) btn.classList.add('correct');
@@ -350,7 +361,10 @@ window.onload = async function () {
         } else {
             quizElements.explanationImage.style.display = 'none';
         }
-        quizElements.explanationText.textContent = question.explanation;
+
+        // 解説の翻訳対応
+        updateTranslatedElement(quizElements.explanationText, question.explanation);
+
         quizElements.explanationContainer.style.display = 'block';
         applyFontSize();
     }
@@ -434,6 +448,86 @@ window.onload = async function () {
     resultElements.reviewIncorrectBtn.addEventListener('click', () => startQuiz(selectedSubCategoryId, true));
     quizElements.fontSizeUpBtn.addEventListener('click', () => { if (currentFontSizeLevel < FONT_SIZE_LEVELS.question.length - 1) { currentFontSizeLevel++; applyFontSize(); } });
     quizElements.fontSizeDownBtn.addEventListener('click', () => { if (currentFontSizeLevel > 0) { currentFontSizeLevel--; applyFontSize(); } });
+
+    // --- 翻訳機能の制御 ---
+    if (i18nElements.translateBtn) {
+        i18nElements.translateBtn.addEventListener('click', () => {
+            i18nElements.languageModal.style.display = 'flex';
+        });
+    }
+
+    if (i18nElements.languageCancelBtn) {
+        i18nElements.languageCancelBtn.addEventListener('click', () => {
+            i18nElements.languageModal.style.display = 'none';
+        });
+    }
+
+    i18nElements.langOptionBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const lang = btn.dataset.lang;
+            currentLanguage = lang;
+            i18nElements.languageModal.style.display = 'none';
+            console.log('Language changed to:', lang);
+
+            // 現在の画面の翻訳を更新
+            if (screens.quiz.style.display === 'block') {
+                updateAllCurrentQuizTexts();
+            }
+        });
+    });
+
+    async function updateTranslatedElement(element, originalText) {
+        if (currentLanguage === 'ja' || !originalText) {
+            element.textContent = originalText;
+            return;
+        }
+
+        const cacheKey = `${originalText}_${currentLanguage}`;
+        if (translationCache[cacheKey]) {
+            element.textContent = translationCache[cacheKey];
+            return;
+        }
+
+        // 翻訳中は「...」表示
+        element.textContent = '...';
+
+        try {
+            const resp = await fetch('/api/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: originalText, targetLang: currentLanguage })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                translationCache[cacheKey] = data.translatedText;
+                element.textContent = data.translatedText;
+            } else {
+                element.textContent = originalText + ' (Error)';
+                if (data.message) alert(data.message);
+            }
+        } catch (e) {
+            console.error('Translation fetch error:', e);
+            element.textContent = originalText;
+        }
+    }
+
+    function updateAllCurrentQuizTexts() {
+        const question = currentQuestions[currentQuestionIndex];
+        if (!question) return;
+
+        updateTranslatedElement(quizElements.questionText, question.question);
+
+        const answerButtons = quizElements.answerButtons.querySelectorAll('button');
+        answerButtons.forEach(btn => {
+            if (btn.dataset.originalText) {
+                updateTranslatedElement(btn, btn.dataset.originalText);
+            }
+        });
+
+        if (quizElements.explanationContainer.style.display === 'block') {
+            updateTranslatedElement(quizElements.explanationText, question.explanation);
+        }
+    }
 
     const initialIconSpan = quizElements.muteBtn.querySelector('.button-icon');
     if (initialIconSpan) {

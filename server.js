@@ -400,6 +400,11 @@ require('./auth-api')(app, usersDataPath, learningHistoryPath);
 require('./admin-api')(app, usersDataPath, learningHistoryPath, quizDataPath);
 
 // ========================================
+// 翻訳用API（Gemini）
+// ========================================
+require('./translate-api')(app, DATA_DIR);
+
+// ========================================
 // バックアップダウンロード用API
 // ========================================
 app.get('/api/backup', (req, res) => {
