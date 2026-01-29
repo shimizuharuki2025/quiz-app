@@ -1,0 +1,22 @@
+{
+    "name": "K'sプランニング トレーニングツール",
+    "short_name": "KSRトレーニング",
+    "description": "ローソン クルー向けトレーニングクイズアプリ",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0056b3",
+    "icons": [
+        {
+            "src": "/quiz-app/lawson_logo.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/quiz-app/lawson_logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
