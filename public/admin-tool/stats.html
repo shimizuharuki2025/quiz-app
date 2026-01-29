@@ -114,8 +114,11 @@
         <div class="auth-card">
             <img src="../quiz-app/lawson_logo.png" alt="Logo" class="auth-logo">
             <h2>管理者認証</h2>
-            <p>統計データにアクセスするにはパスワードが必要です。</p>
+            <p>統計データにアクセスするには権限が必要です。</p>
             <form id="auth-form">
+                <div class="form-group">
+                    <input type="text" id="admin-employee-code-input" placeholder="従業員コードを入力" required>
+                </div>
                 <div class="form-group">
                     <input type="password" id="admin-password-input" placeholder="パスワードを入力" required>
                 </div>

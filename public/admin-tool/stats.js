@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 認証処理
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const employeeCode = document.getElementById('admin-employee-code-input').value;
         const password = document.getElementById('admin-password-input').value;
         authMessage.textContent = '';
 
@@ -17,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/v1/auth/admin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
+                body: JSON.stringify({ employeeCode, password })
             });
 
             const data = await response.json();
