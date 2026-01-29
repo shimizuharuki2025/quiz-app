@@ -591,62 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
         URL.revokeObjectURL(url);
     });
 
-    // --- パスワード変更モーダルの制御 ---
-    const passwordModal = document.getElementById('password-change-modal');
-    const openPasswordModalBtn = document.getElementById('open-password-modal-btn');
-    const closePasswordModalBtn = document.getElementById('close-password-modal-btn');
-    const savePasswordBtn = document.getElementById('save-password-btn');
-
-    if (openPasswordModalBtn) {
-        openPasswordModalBtn.addEventListener('click', () => {
-            passwordModal.style.display = 'flex';
-        });
-    }
-
-    if (closePasswordModalBtn) {
-        closePasswordModalBtn.addEventListener('click', () => {
-            passwordModal.style.display = 'none';
-        });
-    }
-
-    if (savePasswordBtn) {
-        savePasswordBtn.addEventListener('click', async () => {
-            const newPassword = document.getElementById('new-admin-password').value;
-            const confirmPassword = document.getElementById('confirm-admin-password').value;
-
-            if (!newPassword || newPassword.length < 4) {
-                alert('パスワードは4文字以上で入力してください。');
-                return;
-            }
-
-            if (newPassword !== confirmPassword) {
-                alert('パスワードが一致しません。');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/admin/change-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ newPassword })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    alert('パスワードを変更しました。次回ログイン時から有効になります。');
-                    passwordModal.style.display = 'none';
-                    // 入力欄をクリア
-                    document.getElementById('new-admin-password').value = '';
-                    document.getElementById('confirm-admin-password').value = '';
-                } else {
-                    alert('変更失敗: ' + data.message);
-                }
-            } catch (error) {
-                console.error('Password change error:', error);
-                alert('通信エラーが発生しました。');
-            }
-        });
-    }
+    // --- パスワード変更モーダルの制御（削除済み） ---
 
     function renderChangeHistory() {
         const changeHistoryList = document.getElementById('change-history-list');

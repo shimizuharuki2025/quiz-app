@@ -55,196 +55,171 @@
                     アプリを開く
                 </a>
             </div>
-            <button id="open-password-modal-btn"
-                style="text-decoration: none; color: #ff4d4d; font-weight: bold; display: flex; align-items: center; gap: 5px; background: white; padding: 10px 15px; border: none; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; margin-left: 10px;">
-                <span class="material-icons">lock</span>
-                パスワード変更
-            </button>
         </div>
+    </div>
 
-        <!-- パスワード変更モーダル -->
-        <div id="password-change-modal" class="modal-background" style="display: none;">
-            <div class="modal-content">
-                <h2>管理者パスワードの変更</h2>
-                <div class="form-group">
-                    <label for="new-admin-password">新しいパスワード (4文字以上):</label>
-                    <input type="password" id="new-admin-password" placeholder="新しいパスワードを入力">
-                </div>
-                <div class="form-group">
-                    <label for="confirm-admin-password">パスワード（確認）:</label>
-                    <input type="password" id="confirm-admin-password" placeholder="もう一度入力">
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button id="save-password-btn" class="btn-primary">変更する</button>
-                    <button id="close-password-modal-btn" class="btn-secondary">キャンセル</button>
-                </div>
-            </div>
+    <div class="card">
+        <h2>カテゴリ管理</h2>
+        <p class="description">
+            大カテゴリ名をクリックすると、小カテゴリのリストが開閉します 。
+            小カテゴリ名をクリックすると、そのカテゴリの編集を開始します。
+        </p>
+        <div id="category-list-container">
+            <!-- JavaScriptによってカテゴリリストがここに描画される -->
         </div>
-
-        <div class="card">
-            <h2>カテゴリ管理</h2>
-            <p class="description">
-                大カテゴリ名をクリックすると、小カテゴリのリストが開閉します 。
-                小カテゴリ名をクリックすると、そのカテゴリの編集を開始します。
-            </p>
-            <div id="category-list-container">
-                <!-- JavaScriptによってカテゴリリストがここに描画される -->
-            </div>
-            <div class="add-category-area">
-                <input type="text" id="new-main-category-name" placeholder="新しい大カテゴリ名を入力">
-                <button id="add-main-category-btn">大カテゴリを追加</button>
-            </div>
+        <div class="add-category-area">
+            <input type="text" id="new-main-category-name" placeholder="新しい大カテゴリ名を入力">
+            <button id="add-main-category-btn">大カテゴリを追加</button>
         </div>
+    </div>
 
-        <!-- お知らせ管理セクション -->
-        <div class="card">
-            <h2>📢 お知らせ管理</h2>
-            <p class="description">
-                利用者向けのお知らせをバナーで表示できます。表示期間を設定すると、自動的に表示/非表示が切り替わります。
-            </p>
+    <!-- お知らせ管理セクション -->
+    <div class="card">
+        <h2>📢 お知らせ管理</h2>
+        <p class="description">
+            利用者向けのお知らせをバナーで表示できます。表示期間を設定すると、自動的に表示/非表示が切り替わります。
+        </p>
 
-            <!-- 新しいお知らせを追加 -->
-            <div class="announcement-add-form" id="announcement-add-form"
-                style="display: none; margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                <h3>新しいお知らせを追加</h3>
+        <!-- 新しいお知らせを追加 -->
+        <div class="announcement-add-form" id="announcement-add-form"
+            style="display: none; margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <h3>新しいお知らせを追加</h3>
+            <div class="form-group">
+                <label for="new-announcement-message">お知らせ本文 <span style="color: #666;">(最大500文字)</span></label>
+                <textarea id="new-announcement-message" rows="3" maxlength="500"
+                    placeholder="例: 1/15(水)18:00-20:00にシステムメンテナンスを実施します"
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="new-announcement-severity">重要度</label>
+                <select id="new-announcement-severity"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="info">📘 情報 (青色)</option>
+                    <option value="warning">⚠️ 警告 (黄色)</option>
+                    <option value="error">🚨 緊急 (赤色)</option>
+                </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group">
-                    <label for="new-announcement-message">お知らせ本文 <span style="color: #666;">(最大500文字)</span></label>
-                    <textarea id="new-announcement-message" rows="3" maxlength="500"
-                        placeholder="例: 1/15(水)18:00-20:00にシステムメンテナンスを実施します"
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="new-announcement-severity">重要度</label>
-                    <select id="new-announcement-severity"
+                    <label for="new-announcement-start-date">表示開始日</label>
+                    <input type="date" id="new-announcement-start-date"
                         style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="info">📘 情報 (青色)</option>
-                        <option value="warning">⚠️ 警告 (黄色)</option>
-                        <option value="error">🚨 緊急 (赤色)</option>
-                    </select>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label for="new-announcement-end-date">表示終了日</label>
+                    <input type="date" id="new-announcement-end-date"
+                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </div>
+            <div class="form-group-checkbox">
+                <input type="checkbox" id="new-announcement-enabled" checked>
+                <label for="new-announcement-enabled">すぐに表示する</label>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button id="submit-announcement-btn" class="btn-primary" style="padding: 10px 20px;">お知らせを追加</button>
+                <button id="cancel-announcement-btn" class="btn-secondary" style="padding: 10px 20px;">キャンセル</button>
+            </div>
+        </div>
+
+        <!-- お知らせ一覧 -->
+        <div id="announcements-list-container">
+            <div id="announcements-list">
+                <!-- JavaScriptによってお知らせリストがここに描画される -->
+            </div>
+        </div>
+
+        <button id="show-add-announcement-btn"
+            style="margin-top: 15px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            + 新しいお知らせを追加
+        </button>
+    </div>
+
+    <div id="editor-area" style="display: none;">
+        <h2 id="editing-category-name"></h2>
+        <div class="tab-nav">
+            <button class="tab-link active" data-tab="tab-questions">問題リスト</button>
+            <button class="tab-link" data-tab="tab-settings">小カテゴリ設定</button>
+        </div>
+
+        <div class="tab-content-wrapper">
+            <div id="tab-questions" class="tab-content active">
+                <div class="card">
+                    <div id="progress-status" style="margin-bottom: 15px; font-weight: bold;"></div>
+                    <div id="question-list"></div>
+                    <button id="add-question-btn">この小カテゴリに問題を追加</button>
+                </div>
+            </div>
+
+            <div id="tab-settings" class="tab-content">
+                <div class="card">
+                    <h3>小カテゴリ情報編集</h3>
                     <div class="form-group">
-                        <label for="new-announcement-start-date">表示開始日</label>
-                        <input type="date" id="new-announcement-start-date"
-                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <label for="sub-category-name-edit">小カテゴリ名:</label>
+                        <input type="text" id="sub-category-name-edit">
                     </div>
                     <div class="form-group">
-                        <label for="new-announcement-end-date">表示終了日</label>
-                        <input type="date" id="new-announcement-end-date"
-                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <label for="sub-category-description-edit">説明文:</label>
+                        <textarea id="sub-category-description-edit" rows="4"></textarea>
                     </div>
-                </div>
-                <div class="form-group-checkbox">
-                    <input type="checkbox" id="new-announcement-enabled" checked>
-                    <label for="new-announcement-enabled">すぐに表示する</label>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button id="submit-announcement-btn" class="btn-primary"
-                        style="padding: 10px 20px;">お知らせを追加</button>
-                    <button id="cancel-announcement-btn" class="btn-secondary"
-                        style="padding: 10px 20px;">キャンセル</button>
-                </div>
-            </div>
-
-            <!-- お知らせ一覧 -->
-            <div id="announcements-list-container">
-                <div id="announcements-list">
-                    <!-- JavaScriptによってお知らせリストがここに描画される -->
-                </div>
-            </div>
-
-            <button id="show-add-announcement-btn"
-                style="margin-top: 15px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                + 新しいお知らせを追加
-            </button>
-        </div>
-
-        <div id="editor-area" style="display: none;">
-            <h2 id="editing-category-name"></h2>
-            <div class="tab-nav">
-                <button class="tab-link active" data-tab="tab-questions">問題リスト</button>
-                <button class="tab-link" data-tab="tab-settings">小カテゴリ設定</button>
-            </div>
-
-            <div class="tab-content-wrapper">
-                <div id="tab-questions" class="tab-content active">
-                    <div class="card">
-                        <div id="progress-status" style="margin-bottom: 15px; font-weight: bold;"></div>
-                        <div id="question-list"></div>
-                        <button id="add-question-btn">この小カテゴリに問題を追加</button>
+                    <div class="form-group">
+                        <label for="sub-category-color-edit">テーマカラー:</label>
+                        <input type="color" id="sub-category-color-edit">
                     </div>
-                </div>
-
-                <div id="tab-settings" class="tab-content">
-                    <div class="card">
-                        <h3>小カテゴリ情報編集</h3>
-                        <div class="form-group">
-                            <label for="sub-category-name-edit">小カテゴリ名:</label>
-                            <input type="text" id="sub-category-name-edit">
-                        </div>
-                        <div class="form-group">
-                            <label for="sub-category-description-edit">説明文:</label>
-                            <textarea id="sub-category-description-edit" rows="4"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="sub-category-color-edit">テーマカラー:</label>
-                            <input type="color" id="sub-category-color-edit">
-                        </div>
-                        <div class="form-group">
-                            <label for="sub-category-password-edit">パスワード (空欄で解除):</label>
-                            <input type="text" id="sub-category-password-edit" placeholder="パスワードを設定">
-                        </div>
-                        <div class="form-group-checkbox">
-                            <input type="checkbox" id="sub-category-random-edit">
-                            <label for="sub-category-random-edit">問題をランダムな順番で出題する</label>
-                        </div>
-                        <div class="form-group-checkbox" style="margin-top: 10px;">
-                            <input type="checkbox" id="sub-category-guest-edit">
-                            <label for="sub-category-guest-edit"
-                                style="color: #667eea; font-weight: bold;">ゲスト（未ログイン）にも公開する</label>
-                            <p style="font-size: 11px; color: #666; margin-left: 25px; margin-top: 2px;">
-                                ※チェックを入れると、ログインしていない利用者もこのカテゴリをプレイできます。</p>
-                        </div>
-                        <hr>
-                        <button id="delete-sub-category-btn" class="btn-danger">この小カテゴリを削除</button>
+                    <div class="form-group">
+                        <label for="sub-category-password-edit">パスワード (空欄で解除):</label>
+                        <input type="text" id="sub-category-password-edit" placeholder="パスワードを設定">
                     </div>
+                    <div class="form-group-checkbox">
+                        <input type="checkbox" id="sub-category-random-edit">
+                        <label for="sub-category-random-edit">問題をランダムな順番で出題する</label>
+                    </div>
+                    <div class="form-group-checkbox" style="margin-top: 10px;">
+                        <input type="checkbox" id="sub-category-guest-edit">
+                        <label for="sub-category-guest-edit"
+                            style="color: #667eea; font-weight: bold;">ゲスト（未ログイン）にも公開する</label>
+                        <p style="font-size: 11px; color: #666; margin-left: 25px; margin-top: 2px;">
+                            ※チェックを入れると、ログインしていない利用者もこのカテゴリをプレイできます。</p>
+                    </div>
+                    <hr>
+                    <button id="delete-sub-category-btn" class="btn-danger">この小カテゴリを削除</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="footer-actions">
-            <button id="save-to-server-btn" class="btn-primary">
-                <span class="btn-text">すべての変更をサーバーに保存</span>
-                <div class="spinner" style="display: none;"></div>
-            </button>
-            <button id="show-history-btn" class="btn-secondary">
-                <span class="material-icons">history</span>
-                <span class="btn-text">変更履歴</span>
-            </button>
-            <button id="backup-btn" class="btn-secondary">
-                <span class="material-icons">cloud_download</span>
-                <span class="btn-text">バックアップ</span>
-            </button>
-            <div id="save-status">
-                <span class="material-icons"></span>
-                <span class="status-text"></span>
-            </div>
+    <div class="footer-actions">
+        <button id="save-to-server-btn" class="btn-primary">
+            <span class="btn-text">すべての変更をサーバーに保存</span>
+            <div class="spinner" style="display: none;"></div>
+        </button>
+        <button id="show-history-btn" class="btn-secondary">
+            <span class="material-icons">history</span>
+            <span class="btn-text">変更履歴</span>
+        </button>
+        <button id="backup-btn" class="btn-secondary">
+            <span class="material-icons">cloud_download</span>
+            <span class="btn-text">バックアップ</span>
+        </button>
+        <div id="save-status">
+            <span class="material-icons"></span>
+            <span class="status-text"></span>
         </div>
+    </div>
 
-        <!-- 変更履歴パネル -->
-        <div id="change-history-panel" class="modal-background" style="display: none;">
-            <div class="modal-content history-modal">
-                <h2>変更履歴</h2>
-                <div id="change-history-list" class="history-list">
-                    <!-- 変更履歴のリスト -->
-                </div>
-                <div class="history-actions">
-                    <button id="clear-history-btn" class="btn-secondary">履歴をクリア</button>
-                    <button id="export-history-btn" class="btn-secondary">履歴をエクスポート</button>
-                    <button id="close-history-btn" class="btn-primary">閉じる</button>
-                </div>
+    <!-- 変更履歴パネル -->
+    <div id="change-history-panel" class="modal-background" style="display: none;">
+        <div class="modal-content history-modal">
+            <h2>変更履歴</h2>
+            <div id="change-history-list" class="history-list">
+                <!-- 変更履歴のリスト -->
+            </div>
+            <div class="history-actions">
+                <button id="clear-history-btn" class="btn-secondary">履歴をクリア</button>
+                <button id="export-history-btn" class="btn-secondary">履歴をエクスポート</button>
+                <button id="close-history-btn" class="btn-primary">閉じる</button>
             </div>
         </div>
+    </div>
 
     </div>
 

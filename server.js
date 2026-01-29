@@ -204,31 +204,7 @@ app.post('/api/v1/auth/admin', (req, res) => {
     }
 });
 
-// 管理者パスワード変更API
-app.post('/api/admin/change-password', requireAdmin, (req, res) => {
-    const { newPassword } = req.body;
-
-    if (!newPassword || newPassword.length < 4) {
-        return res.status(400).json({ success: false, message: '新しいパスワードは4文字以上で入力してください。' });
-    }
-
-    fs.readFile(quizDataPath, 'utf8', (err, data) => {
-        if (err) return res.status(500).json({ success: false, message: 'データの読み込みに失敗しました。' });
-
-        try {
-            const quizData = JSON.parse(data);
-            const salt = bcrypt.genSaltSync(10);
-            quizData.adminPasswordHash = bcrypt.hashSync(newPassword, salt);
-
-            fs.writeFile(quizDataPath, JSON.stringify(quizData, null, 2), 'utf8', (writeErr) => {
-                if (writeErr) return res.status(500).json({ success: false, message: 'パスワードの保存に失敗しました。' });
-                res.json({ success: true, message: '管理者パスワードを変更しました。' });
-            });
-        } catch (parseErr) {
-            res.status(500).json({ success: false, message: 'データ解析エラーが発生しました。' });
-        }
-    });
-});
+// 管理者パスワード変更APIは削除されました
 
 // ========================================
 // お知らせ管理用API
