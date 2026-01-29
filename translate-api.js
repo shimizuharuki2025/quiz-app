@@ -1,10 +1,9 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 
 module.exports = function (app, DATA_DIR) {
     const cachePath = path.join(DATA_DIR, 'translation-cache.json');
-    const API_KEY = process.env.GEMINI_API_KEY;
 
     // キャッシュの読み込み
     function loadCache() {
@@ -26,30 +25,35 @@ module.exports = function (app, DATA_DIR) {
         }
     }
 
-    // Gemini APIによる翻訳
-    async function translateWithGemini(text, targetLang) {
-        if (!API_KEY) {
-            throw new Error('API_KEYが設定されていません。');
-        }
+    // Google翻訳匿名エンドポイントによる翻訳
+    function translateWithGoogle(text, targetLang) {
+        return new Promise((resolve, reject) => {
+            const encodedText = encodeURIComponent(text);
+            // 匿名で利用可能なエンドポイント (gtx)
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=${targetLang}&dt=t&q=${encodedText}`;
 
-        const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-        const prompt = `Translate the following Japanese quiz text to ${targetLang}. 
-Return ONLY the translated text. Do not include any explanations or extra characters.
-Text: ${text}`;
-
-        try {
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return response.text().trim();
-        } catch (error) {
-            console.error('Gemini APIエラー:', error);
-            if (error.message && error.message.includes('429')) {
-                throw new Error('RATE_LIMIT_EXCEEDED');
-            }
-            throw error;
-        }
+            https.get(url, (res) => {
+                let data = '';
+                res.on('data', (chunk) => { data += chunk; });
+                res.on('end', () => {
+                    try {
+                        const parsed = JSON.parse(data);
+                        // [[["翻訳結果","原文",...]]] という形式で返る
+                        if (parsed && parsed[0] && parsed[0][0] && parsed[0][0][0]) {
+                            // 複数行に分かれている場合を考慮して結合
+                            const translatedText = parsed[0].map(item => item[0]).join('');
+                            resolve(translatedText);
+                        } else {
+                            reject(new Error('翻訳結果のパース失敗'));
+                        }
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            }).on('error', (e) => {
+                reject(e);
+            });
+        });
     }
 
     // 翻訳エンドポイント
@@ -69,10 +73,10 @@ Text: ${text}`;
             return res.json({ success: true, translatedText: cache[cacheKey], cached: true });
         }
 
-        // キャッシュがなければAIで翻訳
+        // キャッシュがなければGoogleで翻訳
         try {
-            console.log(`[AI Translate] ${targetLang}: ${text.substring(0, 20)}...`);
-            const translatedText = await translateWithGemini(text, targetLang);
+            console.log(`[Google Translate] ${targetLang}: ${text.substring(0, 20)}...`);
+            const translatedText = await translateWithGoogle(text, targetLang);
 
             // キャッシュに保存
             cache[cacheKey] = translatedText;
@@ -80,15 +84,10 @@ Text: ${text}`;
 
             res.json({ success: true, translatedText, cached: false });
         } catch (error) {
-            if (error.message === 'RATE_LIMIT_EXCEEDED') {
-                return res.status(429).json({
-                    success: false,
-                    message: '翻訳サービスが混み合っております。1分ほど待ってから再度お試しください。'
-                });
-            }
-            res.status(500).json({ success: false, message: '翻訳中にエラーが発生しました。' });
+            console.error('翻訳エラー:', error);
+            res.status(500).json({ success: false, message: '翻訳サービスに一時的にアクセスできません。' });
         }
     });
 
-    console.log('✓ 翻訳プロキシAPIを初期化しました（Geminiモデル使用）');
+    console.log('✓ 翻訳プロキシAPIを初期化しました（登録不要・匿名方式）');
 };
