@@ -477,7 +477,11 @@ window.onload = async function () {
             console.log('Language changed to:', lang);
 
             // 全体の翻訳を更新
-            updateAllGlobalUITexts();
+            if (currentLanguage === 'ja') {
+                resetToOriginalJapanese();
+            } else {
+                updateAllGlobalUITexts();
+            }
         });
     });
 
@@ -516,7 +520,10 @@ window.onload = async function () {
     }
 
     async function updateTranslatedElement(element, originalText) {
-        if (currentLanguage === 'ja' || !originalText) {
+        if (!originalText) return;
+
+        // 日本語(ja)が選択されている場合は翻訳せず、元のテキストを表示
+        if (currentLanguage === 'ja') {
             element.textContent = originalText;
             return;
         }
@@ -565,6 +572,41 @@ window.onload = async function () {
 
         if (quizElements.explanationContainer.style.display === 'block') {
             updateTranslatedElement(quizElements.explanationText, question.explanation);
+        }
+    }
+
+    // 日本語表示に強制リセットする関数
+    function resetToOriginalJapanese() {
+        // UIボタン類をリセット
+        document.getElementById('view-history-btn').textContent = '📊 学習履歴';
+        document.getElementById('open-user-password-modal-btn').textContent = '🔑 変更';
+        document.getElementById('logout-btn').textContent = 'ログアウト';
+        document.getElementById('translate-btn-global').textContent = '🌐 Language / 言語選択';
+
+        // ホーム画面の固定テキストをリセット
+        Object.entries(homeI18nMap).forEach(([id, text]) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        });
+
+        // カテゴリ一覧を再生成（日本語で）
+        if (screens.home.style.display === 'block') {
+            initializeAndShowHomeScreen();
+        }
+
+        // クイズ中の場合は現在の問題を日本語にリセット
+        if (screens.quiz.style.display === 'block') {
+            const question = currentQuestions[currentQuestionIndex];
+            if (question) {
+                quizElements.questionText.textContent = question.question;
+                const answerButtons = quizElements.answerButtons.querySelectorAll('button');
+                answerButtons.forEach(btn => {
+                    if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
+                });
+                if (quizElements.explanationContainer.style.display === 'block') {
+                    quizElements.explanationText.textContent = question.explanation;
+                }
+            }
         }
     }
 
