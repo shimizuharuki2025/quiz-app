@@ -43,23 +43,39 @@
         }
 
         .user-info-bar button {
-            background: white;
-            color: #667eea;
-            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
             padding: 10px 18px;
             border-radius: 6px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
+            font-weight: 700;
+            transition: all 0.2s ease;
             font-size: 14px;
             min-height: 44px;
-            /* タップしやすい最小サイズ */
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .user-info-bar button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ログアウトボタンだけは白背景で目立たせる */
+        .user-info-bar #logout-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+        }
+
+        .user-info-bar #logout-btn:hover {
+            background: #f8f9fa;
         }
 
         .guest-info-bar {
@@ -146,9 +162,9 @@
             <span>👤 <strong id="user-name"></strong> さん</span>
         </div>
         <div class="user-buttons">
-            <button id="translate-btn-global" style="background: #4A90E2;">🌐 言語選択 (Language)</button>
-            <button id="view-history-btn" style="background: #2196f3;">📊 学習履歴</button>
-            <button id="open-user-password-modal-btn" style="background: #ff9800;">🔑 パスワード変更</button>
+            <button id="translate-btn-global" style="background: #2a5298;">🌐 Language / 言語選択</button>
+            <button id="view-history-btn" style="background: #1e3c72;">📊 学習履歴</button>
+            <button id="open-user-password-modal-btn" style="background: #e67e22;">🔑 変更</button>
             <button id="logout-btn">ログアウト</button>
         </div>
     </div>
