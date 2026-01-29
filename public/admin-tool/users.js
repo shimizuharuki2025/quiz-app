@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 認証処理
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const employeeCode = document.getElementById('admin-employee-code-input').value;
         const password = document.getElementById('admin-password-input').value;
         const messageEl = document.getElementById('auth-message');
         messageEl.textContent = '';
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/v1/auth/admin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
+                body: JSON.stringify({ employeeCode, password })
             });
 
             const data = await response.json();
@@ -114,12 +115,19 @@ document.addEventListener('DOMContentLoaded', () => {
         users.forEach(user => {
             const tr = document.createElement('tr');
             const isBanned = user.isBanned || false;
+            const isAdmin = user.isAdmin || false;
 
             tr.innerHTML = `
                 <td>${user.employeeCode}</td>
                 <td>${user.name}</td>
                 <td>${user.storeCode}</td>
                 <td>${user.storeName || '店舗不明'}</td>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" class="admin-toggle" data-id="${user.id}" ${isAdmin ? 'checked' : ''}>
+                        <span class="slider round"></span>
+                    </label>
+                </td>
                 <td>
                     <span class="status-badge ${isBanned ? 'status-banned' : 'status-active'}" title="${isBanned ? '理由: ' + (user.banReason || 'なし') : ''}">
                         ${isBanned ? 'バン済み' : '有効'}
@@ -144,6 +152,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // ボタンイベントの設定
+        // 管理者トグルのイベント設定
+        document.querySelectorAll('.admin-toggle').forEach(checkbox => {
+            checkbox.onchange = async (e) => {
+                const userId = checkbox.dataset.id;
+                const isAdmin = checkbox.checked;
+
+                try {
+                    const response = await fetch(`/api/admin/users/${userId}/admin-status`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ isAdmin })
+                    });
+                    const data = await response.json();
+                    if (!data.success) {
+                        alert('更新に失敗しました: ' + data.message);
+                        checkbox.checked = !isAdmin; // 状態を戻す
+                    }
+                } catch (err) {
+                    alert('通信エラーが発生しました。');
+                    checkbox.checked = !isAdmin;
+                }
+            };
+        });
+
         document.querySelectorAll('.history-btn').forEach(btn => btn.onclick = () => openHistoryModal(btn.dataset.id));
         document.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = () => openEditModal(btn.dataset.id));
         document.querySelectorAll('.ban-btn').forEach(btn => btn.onclick = () => toggleBan(btn.dataset.id, btn.dataset.banned === 'true'));

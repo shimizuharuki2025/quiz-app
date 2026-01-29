@@ -130,6 +130,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
                 name,
                 passwordHash,
                 isBanned: false,
+                isAdmin: false, // デフォルトは一般ユーザー
                 createdAt: new Date().toISOString(),
                 lastLoginAt: null
             };
@@ -224,6 +225,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
             req.session.employeeCode = user.employeeCode;
             req.session.name = user.name;
             req.session.storeCode = user.storeCode;
+            req.session.isAdmin = user.isAdmin || false; // 管理者フラグをセッションに保存
 
             console.log('ユーザーがログインしました:', employeeCode);
 

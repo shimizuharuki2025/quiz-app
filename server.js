@@ -134,35 +134,61 @@ app.post('/upload', upload.single('image'), (req, res) => {
 });
 
 app.post('/api/v1/auth/admin', (req, res) => {
-    const { password } = req.body;
+    const { employeeCode, password } = req.body;
 
-    // quiz-data.jsonから管理者設定を読み込む
-    fs.readFile(quizDataPath, 'utf8', (err, data) => {
-        let adminPasswordHash = null;
-        const defaultPassword = process.env.ADMIN_PASSWORD || 'admin';
+    // 1. 個別の従業員アカウントでの認証を試行
+    if (employeeCode && password) {
+        const users = readUsers(usersDataPath);
+        const user = users.find(u => u.employeeCode === employeeCode);
 
-        if (!err) {
-            try {
-                const quizData = JSON.parse(data);
-                adminPasswordHash = quizData.adminPasswordHash;
-            } catch (e) {
-                console.error('管理者設定の解析に失敗しました');
+        if (user && !user.isBanned && user.isAdmin) {
+            const isPasswordValid = bcrypt.compareSync(password, user.passwordHash);
+            if (isPasswordValid) {
+                if (req.session) {
+                    req.session.userId = user.id;
+                    req.session.employeeCode = user.employeeCode;
+                    req.session.name = user.name;
+                    req.session.isAdmin = true;
+                }
+                console.log('管理者としてログインしました(個別):', employeeCode);
+                return res.json({ authenticated: true, method: 'individual' });
             }
         }
+    }
 
-        const isMatch = adminPasswordHash
-            ? bcrypt.compareSync(password, adminPasswordHash)
-            : password === defaultPassword;
+    // 2. 従来の共有パスワードでの認証 (移行期間用)
+    const sharedPassword = password || req.body.password; // employeeCodeなしで送られてきた場合用
+    if (sharedPassword) {
+        fs.readFile(quizDataPath, 'utf8', (err, data) => {
+            let adminPasswordHash = null;
+            const defaultPassword = process.env.ADMIN_PASSWORD || 'admin';
 
-        if (isMatch) {
-            if (req.session) {
-                req.session.isAdmin = true;
+            if (!err) {
+                try {
+                    const quizData = JSON.parse(data);
+                    adminPasswordHash = quizData.adminPasswordHash;
+                } catch (e) {
+                    console.error('管理者設定の解析に失敗しました');
+                }
             }
-            res.json({ authenticated: true });
-        } else {
-            res.status(401).json({ authenticated: false, message: 'パスワードが正しくありません。' });
-        }
-    });
+
+            const isMatch = adminPasswordHash
+                ? bcrypt.compareSync(sharedPassword, adminPasswordHash)
+                : sharedPassword === defaultPassword;
+
+            if (isMatch) {
+                if (req.session) {
+                    req.session.isAdmin = true;
+                }
+                console.log('管理者としてログインしました(共有パスワード)');
+                return res.json({ authenticated: true, method: 'shared' });
+            } else {
+                return res.status(401).json({ authenticated: false, message: '従業員コードまたはパスワードが正しくありません。' });
+            }
+        });
+    } else {
+        res.status(400).json({ authenticated: false, message: '従業員コードとパスワードを入力してください。' });
+    }
 });
 
 // 管理者パスワード変更API

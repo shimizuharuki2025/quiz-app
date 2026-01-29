@@ -20,8 +20,11 @@
         <div class="auth-card">
             <img src="../quiz-app/lawson_logo.png" alt="Logo" class="auth-logo">
             <h2>管理者認証</h2>
-            <p>アクセスするにはパスワードが必要です 。</p>
+            <p>アクセスするには権限が必要です。</p>
             <form id="auth-form">
+                <div class="form-group">
+                    <input type="text" id="admin-employee-code-input" placeholder="従業員コード（個人の場合）">
+                </div>
                 <div class="form-group">
                     <input type="password" id="admin-password-input" placeholder="パスワードを入力" required>
                 </div>
@@ -45,6 +48,11 @@
                     style="text-decoration: none; color: #667eea; font-weight: bold; display: flex; align-items: center; gap: 5px; background: white; padding: 10px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                     <span class="material-icons">people</span>
                     ユーザー管理へ
+                </a>
+                <a href="../quiz-app/index.html"
+                    style="text-decoration: none; color: #4caf50; font-weight: bold; display: flex; align-items: center; gap: 5px; background: white; padding: 10px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <span class="material-icons">smartphone</span>
+                    アプリを開く
                 </a>
             </div>
             <button id="open-password-modal-btn"

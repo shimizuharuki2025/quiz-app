@@ -110,6 +110,62 @@
             /* タップしやすい最小サイズ */
         }
 
+        .user-info-bar-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        /* スイッチ（トグル）のデザイン */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4caf50;
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px #4caf50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
         /* モバイル対応 */
         @media (max-width: 768px) {
             .user-info-bar {
@@ -167,6 +223,7 @@
             <span>👤 <strong id="user-name"></strong> さん</span>
         </div>
         <div class="user-buttons">
+            <button id="admin-panel-btn" style="background: #673ab7; display: none;">🛠 管理画面へ</button>
             <button id="translate-btn-global" style="background: #2a5298;">🌐 Language / 言語選択</button>
             <button id="view-history-btn" style="background: #1e3c72;">📊 学習履歴</button>
             <button id="open-user-password-modal-btn" style="background: #e67e22;">🔑 変更</button>

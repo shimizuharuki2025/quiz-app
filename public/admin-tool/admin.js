@@ -383,31 +383,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeHistoryBtn = document.getElementById('close-history-btn');
     const clearHistoryBtn = document.getElementById('clear-history-btn');
     const exportHistoryBtn = document.getElementById('export-history-btn');
-
+    // 認証処理
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const adminPasswordInput = document.getElementById('admin-password-input');
-        const authMessage = document.getElementById('auth-message');
-        authMessage.textContent = '';
-        const password = adminPasswordInput.value;
+        const employeeCode = document.getElementById('admin-employee-code-input').value;
+        const password = document.getElementById('admin-password-input').value;
+        const messageEl = document.getElementById('auth-message');
+        messageEl.textContent = '';
+
         try {
-            const response = await fetch(window.location.origin + '/api/v1/auth/admin', {
+            const response = await fetch('/api/v1/auth/admin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
+                body: JSON.stringify({ employeeCode, password })
             });
+
             const data = await response.json();
             if (response.ok && data.authenticated) {
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('admin-content').style.display = 'block';
-                loadInitialData();
+                authContainer.style.display = 'none';
+                adminContent.style.display = 'block';
+                loadAllData();
             } else {
-                authMessage.textContent = data.message || '認証に失敗しました。パスワードを確認してください。';
-                adminPasswordInput.value = '';
+                messageEl.textContent = data.message || '認証に失敗しました。';
             }
         } catch (error) {
-            console.error('認証エラー:', error);
-            authMessage.textContent = 'サーバーとの通信に失敗しました。';
+            console.error('Auth error:', error);
+            messageEl.textContent = '通信エラーが発生しました。';
         }
     });
 

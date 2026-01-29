@@ -61,6 +61,17 @@ function showUserUI(user) {
         }
         userInfoBar.style.display = 'flex';
         console.log('✓ ユーザー情報バーを表示しました');
+
+        // 管理者ボタンの表示制御
+        const adminBtn = document.getElementById('admin-panel-btn');
+        if (adminBtn) {
+            if (user.isAdmin) {
+                adminBtn.style.display = 'flex';
+                adminBtn.onclick = () => window.location.href = '../admin-tool/admin.html';
+            } else {
+                adminBtn.style.display = 'none';
+            }
+        }
     } else {
         console.error('❌ user-info-bar要素が見つかりません');
     }

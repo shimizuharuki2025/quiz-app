@@ -45,15 +45,20 @@ function readLearningHistory(learningHistoryPath) {
 
 // ミドルウェア：管理者チェック
 function requireAdmin(req, res, next) {
-    // 既存の管理者認証システムを使用
-    // セッションにisAdminフラグがあるかチェック
-    if (!req.session || !req.session.isAdmin) {
-        return res.status(403).json({
-            success: false,
-            message: '管理者権限が必要です。'
-        });
+    // 1. セッションにisAdminフラグがあるかチェック
+    if (req.session && req.session.isAdmin) {
+        return next();
     }
-    next();
+
+    // 認証されていない場合は401、権限がない場合は403
+    if (!req.session || !req.session.userId) {
+        return res.status(401).json({ success: false, message: 'ログインが必要です。' });
+    }
+
+    return res.status(403).json({
+        success: false,
+        message: '管理者権限が必要です。'
+    });
 }
 
 module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath) {

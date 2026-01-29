@@ -236,6 +236,9 @@
             <p>アクセスするにはパスワードが必要です。</p>
             <form id="auth-form">
                 <div class="form-group">
+                    <input type="text" id="admin-employee-code-input" placeholder="従業員コード（個人の場合）">
+                </div>
+                <div class="form-group">
                     <input type="password" id="admin-password-input" placeholder="パスワードを入力" required>
                 </div>
                 <button type="submit" id="auth-submit-btn">認証</button>
@@ -293,6 +296,7 @@
                             <th>従業員コード</th>
                             <th>名前</th>
                             <th>店舗名 (コード)</th>
+                            <th>管理者</th>
                             <th>ステータス</th>
                             <th>学習状況</th>
                             <th>操作</th>
