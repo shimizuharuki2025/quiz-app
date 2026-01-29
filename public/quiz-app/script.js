@@ -145,7 +145,8 @@ window.onload = async function () {
                     item.className = 'sub-category-item';
                     item.dataset.subCategoryId = subCategory.id;
 
-                    const isRestrictedForGuest = window.isGuestMode && !subCategory.isGuestAllowed;
+                    // ゲストアクセスの判定を厳格化（trueの場合のみ許可、それ以外は制限）
+                    const isRestrictedForGuest = window.isGuestMode && subCategory.isGuestAllowed !== true;
                     if (isRestrictedForGuest) {
                         item.classList.add('restricted');
                     }
