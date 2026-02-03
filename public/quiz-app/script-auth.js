@@ -21,6 +21,23 @@ async function initializeAuth() {
         return null;
     }
 
+    // セッションキャッシュを確認（パフォーマンス向上）
+    const cachedAuth = sessionStorage.getItem('cached_auth_user');
+    if (cachedAuth) {
+        try {
+            const userData = JSON.parse(cachedAuth);
+            currentUser = userData;
+            window.currentUser = currentUser;
+            window.isGuestMode = false;
+            console.log('キャッシュからログイン情報を取得:', currentUser.name);
+            showUserUI(currentUser);
+            return currentUser;
+        } catch (e) {
+            console.error('認証キャッシュの解析エラー:', e);
+            sessionStorage.removeItem('cached_auth_user');
+        }
+    }
+
     try {
         const response = await fetch('/api/auth/me', {
             credentials: 'include'
@@ -32,17 +49,23 @@ async function initializeAuth() {
             currentUser = data.user;
             window.currentUser = currentUser;
             window.isGuestMode = false;
+
+            // セッションキャッシュに保存
+            sessionStorage.setItem('cached_auth_user', JSON.stringify(currentUser));
+
             console.log('ログイン中のユーザー:', currentUser.name);
             showUserUI(currentUser);
             return currentUser;
         } else {
-            // 未ログインの場合、ログイン画面にリダイレクト
+            // 未ログインの場合、キャッシュをクリアしログイン画面にリダイレクト
+            sessionStorage.removeItem('cached_auth_user');
             window.location.href = '../auth/login.html';
             return null;
         }
     } catch (error) {
         console.error('認証確認エラー:', error);
-        // エラーの場合、ログイン画面にリダイレクト
+        // エラーの場合、一旦キャッシュをクリア
+        sessionStorage.removeItem('cached_auth_user');
         window.location.href = '../auth/login.html';
         return null;
     }
@@ -101,6 +124,9 @@ function showGuestUI() {
 // ログアウト
 async function logout() {
     try {
+        // キャッシュを先にクリア（UX向上のため）
+        sessionStorage.removeItem('cached_auth_user');
+
         await fetch('/api/auth/logout', {
             method: 'POST',
             credentials: 'include'

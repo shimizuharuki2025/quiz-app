@@ -12,6 +12,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let allUsers = []; // 全ユーザー（検索・ソート用）
     let currentFilteredUsers = [];
 
+    // 自動ログインチェック
+    (async function checkAutoLogin() {
+        try {
+            const response = await fetch('/api/auth/me?t=' + Date.now());
+            const data = await response.json();
+            console.log('認証チェック結果(users):', data);
+            if (data.loggedIn && data.user && data.user.isAdmin) {
+                console.log('管理者として自動ログインしました:', data.user.name);
+                authContainer.style.display = 'none';
+                adminContent.style.display = 'block';
+                loadUsers();
+            } else {
+                console.log('結果(users): 自動ログインスキップ(未ログインまたは非管理者)');
+            }
+        } catch (error) {
+            console.error('自動ログインエラー:', error);
+        }
+    })();
+
     // 認証処理
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();

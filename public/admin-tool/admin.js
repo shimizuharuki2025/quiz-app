@@ -385,6 +385,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeHistoryBtn = document.getElementById('close-history-btn');
     const clearHistoryBtn = document.getElementById('clear-history-btn');
     const exportHistoryBtn = document.getElementById('export-history-btn');
+
+    console.log('--- admin.js 初期化開始 ---');
+
+    // 自動ログインチェック
+    const checkAutoLogin = async () => {
+        console.log('--- 管理者自動ログインチェック開始 ---');
+        try {
+            const response = await fetch('/api/auth/me?t=' + Date.now());
+            console.log('認証レスポンス受信ステータス:', response.status);
+            const data = await response.json();
+            console.log('認証データ受信:', data);
+
+            if (!data.loggedIn) {
+                console.log('結果: 未ログイン状態です。');
+                return;
+            }
+
+            if (data.user && data.user.isAdmin) {
+                console.log('結果: 管理者として自動ログイン成功:', data.user.name);
+                authContainer.style.display = 'none';
+                adminContent.style.display = 'block';
+                loadAllData();
+            } else {
+                console.log('結果: ログイン済みですが、管理者権限（isAdmin）がありません。', data.user);
+            }
+        } catch (error) {
+            console.error('自動ログインエラー:', error);
+        }
+    };
+
+    checkAutoLogin();
+
     // 認証処理
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -414,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function loadInitialData() {
+    async function loadAllData() {
         changeHistoryManager = new ChangeHistoryManager();
         try {
             const response = await fetch(`/api/quiz-data?t=${new Date().getTime()}`);

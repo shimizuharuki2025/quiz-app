@@ -7,6 +7,10 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0056b3">
     <link rel="apple-touch-icon" href="/quiz-app/lawson_logo.png">
+
+    <!-- パフォーマンス最適化：重要リソースの事前読み込み -->
+    <link rel="preload" href="/sw.js" as="script">
+    <link rel="preload" href="/quiz-app/script-auth.js" as="script">
     <script>
         // Service Worker の登録
         if ('serviceWorker' in navigator) {

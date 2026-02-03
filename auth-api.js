@@ -317,6 +317,12 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
 
     // 現在のユーザー情報取得
     app.get('/api/auth/me', (req, res) => {
+        const sessionID = req.sessionID;
+        const userId = req.session ? req.session.userId : 'none';
+        const isAdmin = req.session ? req.session.isAdmin : false;
+
+        console.log(`[AUTH-DEBUG] /api/auth/me - SessionID: ${sessionID}, UserID: ${userId}, IsAdmin: ${isAdmin}`);
+
         if (!req.session || !req.session.userId) {
             return res.json({
                 success: false,

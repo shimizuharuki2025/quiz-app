@@ -106,20 +106,19 @@ window.onload = async function () {
 
     async function loadQuizData() {
         try {
-            const response = await fetch(`/api/quiz-data?t=${new Date().getTime()}`);
+            // パフォーマンス最適化のためキャッシュバスター(?t=...)を削除
+            // 代わりにService Workerの stale-while-revalidate 戦略に委ねる
+            const response = await fetch('/api/quiz-data');
             if (!response.ok) throw new Error(`サーバーエラー (HTTP ${response.status})`);
             quizData = await response.json();
             if (!quizData || !Array.isArray(quizData.mainCategories)) throw new Error('データ形式が不正です。');
 
-            // 認証初期化を確実に待ってからホーム画面を表示
-            if (typeof initializeAuth === 'function') {
-                await initializeAuth();
-            }
-
-            // ログイン済みユーザーまたはゲストモードの場合、パスワードモーダルをスキップ
+            // すでに onload で initializeAuth が呼ばれているため、ここでの重複呼び出しを避ける
+            // window.currentUser または window.isGuestMode が設定されるのを待つ
             if (window.currentUser || window.isGuestMode) {
                 initializeAndShowHomeScreen();
             } else {
+                // まだ認証が終わっていない場合は少し待つか、認証画面へ（通常は onload で完了しているはず）
                 appPasswordElements.modal.style.display = 'flex';
                 appPasswordElements.input.focus();
             }

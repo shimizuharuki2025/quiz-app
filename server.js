@@ -10,6 +10,21 @@ const FileStore = require('session-file-store')(session);
 const app = express();
 const port = process.env.PORT || 10000;
 
+// Renderなどのリバースプロキシを信頼する
+app.set('trust proxy', 1);
+
+// キャッシュ制御ミドルウェア
+app.use((req, res, next) => {
+    const url = req.url;
+    // HTMLファイルや管理ツール関連はキャッシュさせない（常に最新をチェックさせる）
+    if (url.endsWith('.html') || url.includes('/admin-tool/') || url.includes('/api/auth/')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+    }
+    next();
+});
+
 // --- ▼▼▼【Disk機能の設定】▼▼▼ ---
 // 全ての重要データを永続化ディスク(/data)に配置する
 const DATA_DIR = process.env.RENDER_DISK_MOUNT_PATH || path.join(__dirname, 'data');
@@ -83,16 +98,24 @@ app.use(session({
     store: new FileStore({
         path: sessionsDir,
         ttl: 90 * 24 * 60 * 60, // 90日間（秒単位）
-        reapInterval: 24 * 60 * 60 // 1日ごとに期限切れセッションを削除
+        reapInterval: 24 * 60 * 60, // 1日ごとに期限切れセッションを削除
+        logFn: function (msg) {
+            // ENOENT以外の重要なエラーのみを出力
+            if (msg && !msg.includes('ENOENT')) {
+                console.log('[SessionStore]', msg);
+            }
+        }
     }),
     secret: process.env.SESSION_SECRET || 'quiz-app-secret-key-2026',
     resave: false, // セッションが変更されていない限り再保存しない
     saveUninitialized: false, // 未初期化のセッションは保存しない
-    rolling: true, // アクセスごとにセッション有効期限を延長（自動延長機能）
+    proxy: true, // Renderなどのリバースプロキシ環境で必要
+    rolling: true, // アクセスごとに期限を延長
     cookie: {
         maxAge: 90 * 24 * 60 * 60 * 1000, // 90日間（ミリ秒単位）
         httpOnly: true, // XSS対策
-        secure: false // HTTPSの場合はtrueに変更
+        secure: false, // HTTPSの場合はtrueに変更（Render環境でも通常はfalseで動作）
+        path: '/' // 全パスでクッキーが送信されるように明示
     }
 }));
 console.log('✓ セッション管理を初期化しました（有効期限: 90日・自動延長）');
@@ -121,6 +144,9 @@ app.get('/api/quiz-data', (req, res) => {
             return res.status(500).json({ success: false, message: 'サーバーエラー：データの読み込みに失敗しました。' });
         }
         try {
+            // パフォーマンス最適化のため、ブラウザでのキャッシュを許可（10分間）
+            // サービスワーカーの stale-while-revalidate 戦略と組み合わせて高速化を実現
+            res.setHeader('Cache-Control', 'public, max-age=600');
             res.json(JSON.parse(data));
         } catch (parseErr) {
             console.error('JSONデータの解析に失敗しました:', parseErr);
@@ -128,6 +154,18 @@ app.get('/api/quiz-data', (req, res) => {
         }
     });
 });
+
+// デバッグ用エンドポイント（本番運用時は削除推奨）
+app.get('/api/debug/session', (req, res) => {
+    res.json({
+        sessionID: req.sessionID,
+        userId: req.session?.userId,
+        isAdmin: req.session?.isAdmin,
+        cookie: req.session?.cookie,
+        headers: req.headers
+    });
+});
+
 
 app.post('/save', (req, res) => {
     const dataToSave = JSON.stringify(req.body, null, 2);
@@ -444,7 +482,7 @@ app.get('/api/backup', (req, res) => {
 
 app.listen(port, () => {
     console.log(`========================================`);
-    console.log(`サーバーがポート ${port} で起動しました。`);
+    console.log(`サーバーがポート ${port} で起動しました。 [Ver: KS-20260204-1]`);
     console.log(`データ保存先: ${quizDataPath}`);
     console.log(`画像保存先: ${uploadPath}`);
     console.log(`Disk機能: ${process.env.RENDER_DISK_MOUNT_PATH ? '有効 (/data)' : '無効 (ローカル)'}`);
