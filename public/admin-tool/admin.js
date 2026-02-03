@@ -393,9 +393,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('--- 管理者自動ログインチェック開始 ---');
         try {
             const response = await fetch('/api/auth/me?t=' + Date.now());
-            console.log('認証レスポンス受信ステータス:', response.status);
+            if (response.status !== 200) {
+                console.log('認証レスポンス受信ステータス:', response.status);
+            }
             const data = await response.json();
-            console.log('認証データ受信:', data);
 
             if (!data.loggedIn) {
                 console.log('結果: 未ログイン状態です。');
@@ -403,12 +404,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (data.user && data.user.isAdmin) {
-                console.log('結果: 管理者として自動ログイン成功:', data.user.name);
                 authContainer.style.display = 'none';
                 adminContent.style.display = 'block';
                 loadAllData();
-            } else {
-                console.log('結果: ログイン済みですが、管理者権限（isAdmin）がありません。', data.user);
             }
         } catch (error) {
             console.error('自動ログインエラー:', error);

@@ -155,16 +155,6 @@ app.get('/api/quiz-data', (req, res) => {
     });
 });
 
-// デバッグ用エンドポイント（本番運用時は削除推奨）
-app.get('/api/debug/session', (req, res) => {
-    res.json({
-        sessionID: req.sessionID,
-        userId: req.session?.userId,
-        isAdmin: req.session?.isAdmin,
-        cookie: req.session?.cookie,
-        headers: req.headers
-    });
-});
 
 
 app.post('/save', (req, res) => {
@@ -482,7 +472,7 @@ app.get('/api/backup', (req, res) => {
 
 app.listen(port, () => {
     console.log(`========================================`);
-    console.log(`サーバーがポート ${port} で起動しました。 [Ver: KS-20260204-1]`);
+    console.log(`サーバーがポート ${port} で起動しました。`);
     console.log(`データ保存先: ${quizDataPath}`);
     console.log(`画像保存先: ${uploadPath}`);
     console.log(`Disk機能: ${process.env.RENDER_DISK_MOUNT_PATH ? '有効 (/data)' : '無効 (ローカル)'}`);
