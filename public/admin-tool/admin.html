@@ -5,8 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>K'sプランニングトレーニングツール (管理者)</title>
+    <link rel="stylesheet" href="/theme.css">
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="/theme-toggle.js"></script>
     <script src="Sortable.min.js" defer></script>
     <!-- バージョンを更新（キャッシュ破棄用） -->
     <script src="admin.js?v=20260204-005" defer></script>
@@ -50,10 +52,13 @@
                     ユーザー管理へ
                 </a>
                 <a href="../quiz-app/index.html"
-                    style="text-decoration: none; color: #4caf50; font-weight: bold; display: flex; align-items: center; gap: 5px; background: white; padding: 10px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    style="text-decoration: none; color: #4caf50; font-weight: bold; display: flex; align-items: center; gap: 5px; background: var(--surface-color); padding: 10px 15px; border-radius: 8px; box-shadow: var(--card-shadow);">
                     <span class="material-icons">smartphone</span>
                     アプリを開く
                 </a>
+                <button class="btn-secondary" style="width: auto; padding: 10px 15px;" onclick="window.toggleTheme()">
+                    <span class="theme-toggle-icon">🌙</span> <span class="theme-toggle-text">ダーク</span>
+                </button>
             </div>
         </div>
     </div>
@@ -82,7 +87,7 @@
 
         <!-- 新しいお知らせを追加 -->
         <div class="announcement-add-form" id="announcement-add-form"
-            style="display: none; margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            style="display: none; margin-bottom: 20px; padding: 20px; background: var(--explanation-bg); border-radius: 8px;">
             <h3>新しいお知らせを追加</h3>
             <div class="form-group">
                 <label for="new-announcement-message">お知らせ本文 <span style="color: #666;">(最大500文字)</span></label>
@@ -114,6 +119,14 @@
             <div class="form-group-checkbox">
                 <input type="checkbox" id="new-announcement-enabled" checked>
                 <label for="new-announcement-enabled">すぐに表示する</label>
+            </div>
+            <div class="form-group-checkbox" style="margin-top: 10px;">
+                <input type="checkbox" id="new-announcement-push">
+                <label for="new-announcement-push" style="color: #e91e63; font-weight: bold;">
+                    <span class="material-icons"
+                        style="font-size: 16px; vertical-align: middle;">notifications_active</span>
+                    プッシュ通知を全員に送信する
+                </label>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button id="submit-announcement-btn" class="btn-primary" style="padding: 10px 20px;">お知らせを追加</button>

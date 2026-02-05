@@ -1,8 +1,10 @@
-const CACHE_NAME = 'ks-training-v4'; // バージョンアップでキャッシュ刷新
+const CACHE_NAME = 'ks-training-v5'; // バージョンアップでキャッシュ刷新
 const STATIC_ASSETS = [
     '/',
     '/index.html',
     '/manifest.json',
+    '/theme.css',
+    '/theme-toggle.js',
     '/quiz-app/index.html',
     '/quiz-app/style.css',
     '/quiz-app/style-announcements.css',
@@ -14,6 +16,7 @@ const STATIC_ASSETS = [
     '/auth/auth.css'
 ];
 
+// ... (install / activate listeners remain the same)
 // インストール時に静的ファイルをキャッシュ
 self.addEventListener('install', (event) => {
     event.waitUntil(
@@ -63,17 +66,10 @@ self.addEventListener('fetch', (event) => {
                         cache.put(event.request, networkResponse.clone());
                         return networkResponse;
                     });
-                    // キャッシュがあればそれを返しつつ、バックグラウンドで更新
-                    // キャッシュがなければネットワークの結果を待つ
                     return cachedResponse || fetchPromise;
                 });
             })
         );
-        return;
-    }
-
-    // 3. その他APIリクエストはキャッシュしない（翻訳、学習記録など）
-    if (url.pathname.includes('/api/')) {
         return;
     }
 
@@ -96,6 +92,62 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request).then((response) => {
             return response || fetch(event.request);
+        })
+    );
+});
+
+// ========================================
+// プッシュ通知の受信
+// ========================================
+self.addEventListener('push', (event) => {
+    if (!event.data) return;
+
+    let data = {
+        title: 'トレーニングアプリ',
+        body: '新しいメッセージがあります',
+        icon: '/quiz-app/lawson_logo.png',
+        url: '/quiz-app/index.html'
+    };
+
+    try {
+        data = event.data.json();
+    } catch (e) {
+        data.body = event.data.text();
+    }
+
+    const options = {
+        body: data.body,
+        icon: data.icon,
+        badge: '/quiz-app/lawson_logo.png', // Androidの通知用アイコン
+        data: {
+            url: data.url
+        }
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, options)
+    );
+});
+
+// ========================================
+// 通知をクリックした時の動作
+// ========================================
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const targetUrl = event.notification.data.url || '/quiz-app/index.html';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window' }).then((clientList) => {
+            // 既にアプリが開いている場合はフォーカスし、なければ新規作成
+            for (const client of clientList) {
+                if (client.url.includes(targetUrl) && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
         })
     );
 });

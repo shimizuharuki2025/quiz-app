@@ -5,8 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>K'sプランニングトレーニングツール (ユーザー管理)</title>
+    <link rel="stylesheet" href="/theme.css">
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="/theme-toggle.js"></script>
     <script src="users.js?v=20260203-001" defer></script>
     <link rel="icon" type="image/png" href="../quiz-app/lawson_logo.png">
     <style>
@@ -18,7 +20,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            background: var(--surface-color);
             border-radius: 8px;
             overflow: hidden;
         }
@@ -31,13 +33,13 @@
         }
 
         th {
-            background-color: #f8f9fa;
+            background-color: var(--accent-bg);
             font-weight: 600;
-            color: #333;
+            color: var(--text-color);
         }
 
         tr:hover {
-            background-color: #fcfcfc;
+            background-color: var(--explanation-bg);
         }
 
         .status-badge {
@@ -144,7 +146,7 @@
             display: flex;
             gap: 20px;
             margin-bottom: 25px;
-            background: #f8f9fa;
+            background: var(--accent-bg);
             padding: 15px;
             border-radius: 8px;
             flex-wrap: wrap;
@@ -255,6 +257,10 @@
     <div class="container" id="admin-content" style="display: none;">
         <div class="nav-links">
             <a href="admin.html"><span class="material-icons">arrow_back</span>クイズ管理へ戻る</a>
+            <button class="btn-secondary" style="width: auto; padding: 5px 10px; font-size: 14px; margin-left: auto;"
+                onclick="window.toggleTheme()">
+                <span class="theme-toggle-icon">🌙</span> <span class="theme-toggle-text">ダーク</span>
+            </button>
         </div>
 
         <h1>ユーザー管理</h1>

@@ -6,6 +6,7 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
+const webpush = require('web-push');
 
 const app = express();
 const port = process.env.PORT || 10000;
@@ -32,6 +33,8 @@ const quizDataPath = path.join(DATA_DIR, 'quiz-data.json');
 const usersDataPath = path.join(DATA_DIR, 'users.json');
 const learningHistoryPath = path.join(DATA_DIR, 'learning-history.json');
 const sourceDataPath = path.join(__dirname, 'public', 'quiz-app', 'quiz-data.json');
+const subscriptionsDataPath = path.join(DATA_DIR, 'subscriptions.json');
+const vapidKeysPath = path.join(DATA_DIR, 'vapid-keys.json');
 
 // 画像保存先もDiskに変更
 const uploadPath = path.join(DATA_DIR, 'uploads');
@@ -54,6 +57,19 @@ if (!fs.existsSync(quizDataPath)) {
         fs.writeFileSync(quizDataPath, JSON.stringify(emptyData, null, 2), 'utf8');
         console.log(`✓ 空の初期データを作成しました: ${quizDataPath}`);
     }
+}
+
+// VAPID設定
+if (fs.existsSync(vapidKeysPath)) {
+    const vapidKeys = JSON.parse(fs.readFileSync(vapidKeysPath, 'utf8'));
+    webpush.setVapidDetails(
+        'mailto:example@yourdomain.com',
+        vapidKeys.publicKey,
+        vapidKeys.privateKey
+    );
+    console.log('✓ VAPIDキーをロードしました。');
+} else {
+    console.warn('⚠️ VAPIDキーが見つかりません。プッシュ通知が動作しません。');
 }
 // --- ▲▲▲【ここまで】▲▲▲ ---
 
@@ -436,6 +452,108 @@ app.delete('/api/announcements/:id', (req, res) => {
 // ユーザー認証と学習履歴API
 // ========================================
 require('./auth-api')(app, usersDataPath, learningHistoryPath);
+
+// ========================================
+// プッシュ通知用API
+// ========================================
+
+// サブスクリプション保存関数
+function saveSubscription(subscription) {
+    let subscriptions = [];
+    if (fs.existsSync(subscriptionsDataPath)) {
+        try {
+            subscriptions = JSON.parse(fs.readFileSync(subscriptionsDataPath, 'utf8'));
+        } catch (e) {
+            console.error('Subscriptions parse error:', e);
+        }
+    }
+    // 重複チェック (endpointで判断)
+    if (!subscriptions.find(s => s.endpoint === subscription.endpoint)) {
+        subscriptions.push(subscription);
+        fs.writeFileSync(subscriptionsDataPath, JSON.stringify(subscriptions, null, 2));
+        return true;
+    }
+    return false;
+}
+
+// サブスクリプション削除関数
+function removeSubscription(endpoint) {
+    if (fs.existsSync(subscriptionsDataPath)) {
+        try {
+            let subscriptions = JSON.parse(fs.readFileSync(subscriptionsDataPath, 'utf8'));
+            const initialLength = subscriptions.length;
+            subscriptions = subscriptions.filter(s => s.endpoint !== endpoint);
+            if (subscriptions.length !== initialLength) {
+                fs.writeFileSync(subscriptionsDataPath, JSON.stringify(subscriptions, null, 2));
+                return true;
+            }
+        } catch (e) {
+            console.error('Subscriptions parse error during removal:', e);
+        }
+    }
+    return false;
+}
+
+app.post('/api/push/subscribe', (req, res) => {
+    const subscription = req.body;
+    if (saveSubscription(subscription)) {
+        res.status(201).json({ success: true, message: 'サブスクリプションを保存しました。' });
+    } else {
+        res.status(200).json({ success: true, message: '既に登録されています。' });
+    }
+});
+
+app.post('/api/push/unsubscribe', (req, res) => {
+    const { endpoint } = req.body;
+    if (removeSubscription(endpoint)) {
+        res.json({ success: true, message: 'サブスクリプションを解除しました。' });
+    } else {
+        res.status(404).json({ success: false, message: 'サブスクリプションが見つかりません。' });
+    }
+});
+
+// プッシュ通知送信API (管理者用)
+app.post('/api/push/send', requireAdmin, (req, res) => {
+    const { title, body, icon, url, severity } = req.body;
+
+    if (!fs.existsSync(subscriptionsDataPath)) {
+        return res.status(404).json({ success: false, message: '有効な登録者がいません。' });
+    }
+
+    const subscriptions = JSON.parse(fs.readFileSync(subscriptionsDataPath, 'utf8'));
+    const payload = JSON.stringify({
+        title: title || 'トレーニングアプリ',
+        body: body || '新しいお知らせがあります',
+        icon: icon || '/quiz-app/lawson_logo.png',
+        url: url || '/quiz-app/index.html',
+        severity: severity || 'info'
+    });
+
+    const results = {
+        total: subscriptions.length,
+        success: 0,
+        failure: 0
+    };
+
+    const pushPromises = subscriptions.map(sub => {
+        return webpush.sendNotification(sub, payload)
+            .then(() => {
+                results.success++;
+            })
+            .catch(err => {
+                console.error('Push error:', err.endpoint, err.statusCode);
+                results.failure++;
+                // 期限切れや無効なトークンを自動削除する（404, 410）
+                if (err.statusCode === 404 || err.statusCode === 410) {
+                    removeSubscription(sub.endpoint);
+                }
+            });
+    });
+
+    Promise.all(pushPromises).then(() => {
+        res.json({ success: true, results });
+    });
+});
 
 // ========================================
 // 管理者用ユーザー管理API

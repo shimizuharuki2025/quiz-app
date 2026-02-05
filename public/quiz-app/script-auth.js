@@ -5,6 +5,7 @@
 // グローバルな現在のユーザー情報
 let currentUser = null;
 let isGuestMode = false;
+const PUBLIC_VAPID_KEY = 'BPyUeYOdksDeB6WlbQSHoBVHfGNmHfC16syT6YLKgdhluNp4PY1z5YwKb8sYk83mzaxWatdsCve8u5tipBbNAII';
 
 // ページ読み込み時にユーザー情報を取得
 async function initializeAuth() {
@@ -95,6 +96,9 @@ function showUserUI(user) {
                 adminBtn.style.display = 'none';
             }
         }
+
+        // プッシュ通知ボタンの表示制御
+        updatePushStatus();
     } else {
         console.error('❌ user-info-bar要素が見つかりません');
     }
@@ -252,6 +256,120 @@ function setupAuthEventListeners() {
                 alert('通信エラーが発生しました。');
             }
         });
+    }
+
+    // プッシュ通知トグルボタン
+    const pushToggleBtn = document.getElementById('push-toggle-btn');
+    if (pushToggleBtn) {
+        pushToggleBtn.addEventListener('click', togglePushSubscription);
+    }
+}
+
+// ========================================
+// プッシュ通知関連のロジック
+// ========================================
+
+// Base64をUint8Arrayに変換 (VAPID用)
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+// プッシュ通知の状態を更新
+async function updatePushStatus() {
+    const pushToggleBtn = document.getElementById('push-toggle-btn');
+    if (!pushToggleBtn || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return;
+    }
+
+    // ゲストモード or 未ログインなら隠す
+    if (window.isGuestMode || !window.currentUser) {
+        pushToggleBtn.style.display = 'none';
+        return;
+    }
+
+    pushToggleBtn.style.display = 'flex';
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+
+        if (subscription) {
+            pushToggleBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">notifications_off</span> 通知を解除する';
+            pushToggleBtn.style.background = '#757575'; // グレー
+        } else {
+            pushToggleBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">notifications</span> 通知を有効にする';
+            pushToggleBtn.style.background = '#e91e63'; // ピンク
+        }
+    } catch (error) {
+        console.error('Error checking push status:', error);
+    }
+}
+
+// プッシュ通知の切り替え
+async function togglePushSubscription() {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+
+    if (subscription) {
+        // 解除
+        await unsubscribeFromPush(subscription);
+    } else {
+        // 登録
+        await subscribeToPush(registration);
+    }
+    updatePushStatus();
+}
+
+// サブスクライブ
+async function subscribeToPush(registration) {
+    try {
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
+        });
+
+        const response = await fetch('/api/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(subscription),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            alert('通知を有効にしました。');
+        } else {
+            throw new Error('Server registration failed');
+        }
+    } catch (error) {
+        console.error('Failed to subscribe:', error);
+        alert('通知の有効化に失敗しました。ブラウザの設定で許可されているか確認してください。');
+    }
+}
+
+// アンサブスクライブ
+async function unsubscribeFromPush(subscription) {
+    try {
+        await fetch('/api/push/unsubscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: subscription.endpoint }),
+            credentials: 'include'
+        });
+
+        await subscription.unsubscribe();
+        alert('通知を解除しました。');
+    } catch (error) {
+        console.error('Failed to unsubscribe:', error);
+        alert('解除に失敗しましたが、端末側の登録は削除しました。');
     }
 }
 

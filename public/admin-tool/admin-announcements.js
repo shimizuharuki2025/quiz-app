@@ -36,9 +36,9 @@ function renderAnnouncementsList(announcements) {
 
     announcementsListEl.innerHTML = announcements.map(announcement => {
         const severityColors = {
-            info: { bg: '#E3F2FD', border: '#2196F3', emoji: '📘' },
-            warning: { bg: '#FFF9C4', border: '#FFC107', emoji: '⚠️' },
-            error: { bg: '#FFEBEE', border: '#F44336', emoji: '🚨' }
+            info: { bg: 'var(--info-bg)', border: 'var(--info-border)', emoji: '📘' },
+            warning: { bg: 'var(--warning-bg)', border: 'var(--warning-border)', emoji: '⚠️' },
+            error: { bg: 'var(--announcement-error-bg)', border: 'var(--announcement-error-border)', emoji: '🚨' }
         };
 
         const colorScheme = severityColors[announcement.severity] || severityColors.info;
@@ -139,6 +139,33 @@ async function addAnnouncement(announcementData) {
     }
 }
 
+// プッシュ通知を送信
+async function sendPushNotification(title, body, severity) {
+    try {
+        const response = await fetch('/api/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: title,
+                body: body,
+                severity: severity,
+                url: '/quiz-app/index.html'
+            })
+        });
+        const result = await response.json();
+        if (result.success) {
+            console.log('Push sent:', result.results);
+            return result.results;
+        } else {
+            console.error('Push failed:', result.message);
+            return null;
+        }
+    } catch (error) {
+        console.error('Push error:', error);
+        return null;
+    }
+}
+
 // お知らせを更新
 async function updateAnnouncement(id, updates) {
     try {
@@ -226,16 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const endDate = document.getElementById('new-announcement-end-date').value;
         const enabled = document.getElementById('new-announcement-enabled').checked;
 
-        if (!message) {
-            alert('お知らせ本文を入力してください。');
-            return;
-        }
-
-        if (endDate && startDate && endDate < startDate) {
-            alert('表示終了日は開始日以降に設定してください。');
-            return;
-        }
-
         const announcementData = {
             message,
             severity,
@@ -244,7 +261,18 @@ document.addEventListener('DOMContentLoaded', () => {
             enabled
         };
 
-        addAnnouncement(announcementData);
+        const sendPush = document.getElementById('new-announcement-push').checked;
+
+        addAnnouncement(announcementData).then(() => {
+            if (sendPush) {
+                const title = severity === 'error' ? '🚨 緊急のお知らせ' : (severity === 'warning' ? '⚠️ 警告' : '📢 お知らせ');
+                sendPushNotification(title, message, severity).then(results => {
+                    if (results) {
+                        alert(`お知らせを追加し、${results.success} 件のデバイスに通知を送りました。`);
+                    }
+                });
+            }
+        });
     });
 
     // お知らせ一覧のボタンイベント（編集・削除）
@@ -306,6 +334,7 @@ async function editAnnouncementPrompt(id) {
             const startDate = document.getElementById('new-announcement-start-date').value;
             const endDate = document.getElementById('new-announcement-end-date').value;
             const enabled = document.getElementById('new-announcement-enabled').checked;
+            const sendPush = document.getElementById('new-announcement-push').checked;
 
             if (!message) {
                 alert('お知らせ本文を入力してください。');
@@ -319,6 +348,15 @@ async function editAnnouncementPrompt(id) {
 
             await updateAnnouncement(id, { message, severity, startDate, endDate, enabled });
 
+            if (sendPush) {
+                const title = severity === 'error' ? '🚨 緊急のお知らせ' : (severity === 'warning' ? '⚠️ 警告' : '📢 お知らせ (更新)');
+                sendPushNotification(title, message, severity).then(results => {
+                    if (results) {
+                        alert(`お知らせを更新し、${results.success} 件のデバイスに通知を送りました。`);
+                    }
+                });
+            }
+
             // フォームをリセット
             announcementAddForm.style.display = 'none';
             newSubmitBtn.textContent = 'お知らせを追加';
@@ -327,6 +365,7 @@ async function editAnnouncementPrompt(id) {
             document.getElementById('new-announcement-start-date').value = '';
             document.getElementById('new-announcement-end-date').value = '';
             document.getElementById('new-announcement-enabled').checked = true;
+            document.getElementById('new-announcement-push').checked = false;
         }, { once: true });
     } catch (error) {
         console.error('お知らせ編集エラー:', error);

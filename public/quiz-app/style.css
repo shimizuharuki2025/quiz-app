@@ -5,8 +5,8 @@
 body {
     font-family: 'Noto Sans JP', sans-serif;
     margin: 0;
-    background-color: #47B3FC;
-    color: #333;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -26,11 +26,11 @@ body {
 
 h1,
 h3 {
-    color: #FF0000;
+    color: var(--heading-color);
 }
 
 h2 {
-    color: #707070;
+    color: var(--subheading-color);
 }
 
 button {
@@ -39,14 +39,14 @@ button {
     padding: 12px 24px;
     border: none;
     border-radius: 8px;
-    background-color: #00a0e9;
+    background-color: var(--primary-color);
     color: white;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
 }
 
 button:hover {
-    background-color: #007bbb;
+    background-color: var(--primary-hover);
     transform: translateY(-2px);
 }
 
@@ -55,12 +55,12 @@ button:active {
 }
 
 .btn-secondary {
-    background-color: #E32B2B;
-    color: #333;
+    background-color: var(--secondary-color);
+    color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #bbb;
+    background-color: var(--secondary-hover);
 }
 
 
@@ -81,7 +81,7 @@ button:active {
 
 .home-header h1 {
     font-size: 2em;
-    color: #004e9c;
+    color: var(--heading-color);
     margin-bottom: 10px;
 }
 
@@ -92,7 +92,7 @@ button:active {
 
 .home-header p {
     font-size: 1.1em;
-    color: #555;
+    color: var(--subheading-color);
 }
 
 /* --- アコーディオンUIのスタイル --- */
@@ -103,10 +103,10 @@ button:active {
 }
 
 .main-category {
-    background-color: #fff;
+    background-color: var(--surface-color);
     border-radius: 10px;
     margin-bottom: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--card-shadow);
     overflow: hidden;
 }
 
@@ -118,13 +118,13 @@ button:active {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #B6F5F5;
-    border-bottom: 1px solid #08CDF5;
+    background-color: var(--accent-bg);
+    border-bottom: 1px solid var(--accent-border);
     transition: background-color 0.2s;
 }
 
 .main-category-header:hover {
-    background-color: #f9f9f9;
+    background-color: var(--explanation-bg);
 }
 
 .main-category-header::after {
@@ -141,7 +141,7 @@ button:active {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s ease-out, padding 0.4s ease-out;
-    background-color: #E0AC70;
+    background-color: var(--dropdown-bg);
 }
 
 .main-category.open .sub-category-list {
@@ -154,7 +154,7 @@ button:active {
     align-items: center;
     padding: 15px 20px;
     cursor: pointer;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-color);
     transition: background-color 0.2s;
 }
 
@@ -163,7 +163,7 @@ button:active {
 }
 
 .sub-category-item:hover {
-    background-color: #f4f7fc;
+    background-color: var(--explanation-bg);
 }
 
 .sub-category-item .icon {
@@ -180,7 +180,7 @@ button:active {
 
 .sub-category-item .highscore {
     font-size: 0.9em;
-    color: #888;
+    color: var(--subheading-color);
 }
 
 /* ゲストアクセス・制限用スタイル */
@@ -213,7 +213,7 @@ button:active {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: var(--shadow-color);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -221,11 +221,11 @@ button:active {
 }
 
 .modal-content {
-    background-color: white;
+    background-color: var(--surface-color);
     padding: 30px 40px;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--card-shadow);
     max-width: 400px;
 }
 
@@ -242,7 +242,7 @@ button:active {
     width: 100%;
     padding: 10px;
     margin: 20px 0;
-    border: 1px solid #FF4772;
+    border: 1px solid var(--primary-color);
     border-radius: 5px;
     font-size: 1em;
     box-sizing: border-box;
@@ -261,9 +261,9 @@ button:active {
     width: 100%;
     margin: 20px auto;
     padding: 20px;
-    background-color: white;
+    background-color: var(--surface-color);
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--card-shadow);
 }
 
 .quiz-header {
@@ -274,13 +274,13 @@ button:active {
     gap: 15px;
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid var(--border-color);
 }
 
 #progress-bar-container {
     width: 100%;
     height: 10px;
-    background-color: #08CDF5;
+    background-color: var(--accent-bg);
     border-radius: 5px;
     margin-bottom: 30px;
 }
@@ -288,7 +288,7 @@ button:active {
 #progress-bar {
     height: 100%;
     width: 0%;
-    background-color: #00a0e9;
+    background-color: var(--primary-color);
     border-radius: 5px;
     transition: width 0.3s ease-in-out;
 }
@@ -300,7 +300,7 @@ button:active {
 #question-number {
     font-size: 1.2em;
     font-weight: bold;
-    color: #888;
+    color: var(--subheading-color);
 }
 
 #question-text {
@@ -308,7 +308,7 @@ button:active {
     margin: 20px 0;
     line-height: 1.6;
     word-wrap: break-word;
-    color: #333;
+    color: var(--text-color);
 }
 
 .btn-grid {
@@ -323,9 +323,9 @@ button:active {
     /* JavaScriptでサイズを制御するため、固定値は参考程度 */
     font-size: 1.1rem;
     text-align: left;
-    background-color: #f0f0f0;
-    color: #333;
-    border: 2px solid #ddd;
+    background-color: var(--explanation-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
     /* 文字がはみ出さないように調整 */
     white-space: normal;
     word-wrap: break-word;
@@ -334,20 +334,21 @@ button:active {
 }
 
 .btn-grid button:hover {
-    background-color: #08CDF5;
-    border-color: #ccc;
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-hover);
 }
 
 .btn-grid button.correct {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
+    background-color: var(--success-color);
+    border-color: var(--accent-border);
+    color: var(--success-text);
 }
 
 .btn-grid button.incorrect {
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-    color: #721c24;
+    background-color: var(--error-color);
+    border-color: var(--accent-border);
+    color: var(--error-text);
 }
 
 .btn-grid button:disabled {
@@ -358,9 +359,9 @@ button:active {
 #explanation-container {
     margin-top: 30px;
     padding: 20px;
-    background-color: #f8f9fa;
+    background-color: var(--explanation-bg);
     border-radius: 8px;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--border-color);
 }
 
 #feedback-title {
@@ -380,9 +381,9 @@ button:active {
     margin: 40px auto;
     padding: 40px;
     text-align: center;
-    background-color: white;
+    background-color: var(--surface-color);
     border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--card-shadow);
 }
 
 #score-text {
@@ -398,7 +399,7 @@ button:active {
 
 #high-score-text {
     font-size: 1.2em;
-    color: #004e9c;
+    color: var(--primary-color);
     margin-bottom: 40px;
 }
 
@@ -449,15 +450,15 @@ button:active {
     /* 少しサイズを調整 */
     padding: 8px 12px;
     background-color: transparent;
-    border: 2px solid #00a0e9;
-    color: #00a0e9;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s;
 }
 
 .btn-icon:hover {
-    background-color: #00a0e9;
+    background-color: var(--primary-color);
     color: white;
     transform: translateY(-2px);
 }
@@ -593,11 +594,11 @@ button:active {
 
 /* 複数回答問題で選択されたボタンのスタイル */
 .btn-grid button.selected {
-    background-color: #00a0e9;
+    background-color: var(--primary-color);
     /* 背景色を青くする */
     color: white;
     /* 文字色を白くする */
-    border-color: #007bbb;
+    border-color: var(--primary-hover);
     /* 枠線の色を少し濃い青にする */
 }
 
@@ -612,7 +613,9 @@ button:active {
     width: 100%;
     padding: 15px;
     font-size: 1.2em;
-    border: 2px solid #ddd;
+    border: 2px solid var(--border-color);
+    background-color: var(--surface-color);
+    color: var(--text-color);
     border-radius: 8px;
     box-sizing: border-box;
     margin-top: 20px;

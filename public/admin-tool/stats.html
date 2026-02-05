@@ -5,8 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>K'sプランニングトレーニングツール (統計)</title>
+    <link rel="stylesheet" href="/theme.css">
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="/theme-toggle.js"></script>
     <link rel="icon" type="image/png" href="../quiz-app/lawson_logo.png">
     <style>
         .stats-grid {
@@ -17,10 +19,10 @@
         }
 
         .stats-card {
-            background: white;
+            background: var(--surface-color);
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--card-shadow);
             text-align: center;
         }
 
@@ -37,10 +39,10 @@
         }
 
         .dashboard-section {
-            background: white;
+            background: var(--surface-color);
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--card-shadow);
             margin-bottom: 30px;
         }
 
@@ -66,9 +68,9 @@
         }
 
         th {
-            background-color: #f8f9fa;
+            background-color: var(--accent-bg);
             font-weight: bold;
-            color: #444;
+            color: var(--text-color);
         }
 
         .score-badge {
@@ -95,15 +97,15 @@
 
         .nav-link {
             text-decoration: none;
-            color: #667eea;
+            color: var(--primary-color);
             font-weight: bold;
             display: flex;
             align-items: center;
             gap: 5px;
-            background: white;
+            background: var(--surface-color);
             padding: 10px 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
         }
     </style>
 </head>
@@ -144,6 +146,10 @@
                 <button id="download-csv-btn" class="nav-link" style="border: none; cursor: pointer; color: #4caf50;">
                     <span class="material-icons">description</span>
                     CSV出力
+                </button>
+                <button class="nav-link" style="border: none; cursor: pointer; color: var(--text-color);"
+                    onclick="window.toggleTheme()">
+                    <span class="theme-toggle-icon">🌙</span> <span class="theme-toggle-text">ダーク</span>
                 </button>
             </div>
         </div>
