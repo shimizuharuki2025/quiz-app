@@ -696,23 +696,26 @@ button:active {
     .user-buttons {
         position: fixed;
         top: 0;
-        right: -280px;
-        /* 初期状態は画面外 */
+        right: 0;
+        /* 右端に配置 */
+        transform: translateX(100%);
+        /* 画面外（右）に移動 */
         width: 250px;
         height: 100vh;
         background-color: var(--surface-color);
         box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
         flex-direction: column;
         padding: 0;
-        transition: right 0.3s ease-in-out;
+        transition: transform 0.3s ease-in-out;
+        /* rightではなくtransformをアニメーション */
         z-index: 1200;
         /* 最前面 */
         overflow-y: auto;
     }
 
     .user-buttons.open {
-        right: 0;
-        /* 表示 */
+        transform: translateX(0);
+        /* 画面内に移動 */
     }
 
     /* メニューヘッダー */
