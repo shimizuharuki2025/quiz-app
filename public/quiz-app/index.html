@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>K'sプランニングトレーニングツール</title>
     <link rel="stylesheet" href="/theme.css">
-    <link rel="stylesheet" href="style.css?v=20260208-001">
-    <link rel="stylesheet" href="style-announcements.css?v=20260208-001">
+    <link rel="stylesheet" href="style.css?v=20260208-002">
+    <link rel="stylesheet" href="style-announcements.css?v=20260208-002">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -249,18 +249,34 @@
                 <h3>メニュー</h3>
                 <button id="mobile-menu-close" class="close-btn"><span class="material-icons">close</span></button>
             </div>
-            <button id="admin-panel-btn" style="background: #673ab7; display: none;">🛠 管理画面へ</button>
-            <button id="translate-btn-global" style="background: #2a5298;">🌐 Language / 言語選択</button>
-            <button id="view-history-btn" style="background: #1e3c72;">📊 学習履歴</button>
-            <button id="open-user-password-modal-btn" style="background: #ef6c00;">🔑 変更</button>
-            <button id="push-toggle-btn" style="background: #e91e63; display: none;">
-                <span class="material-icons" style="font-size: 18px;">notifications</span>
+            <button id="admin-panel-btn" style="display: none;">
+                <span class="material-icons">build</span>
+                管理画面へ
+            </button>
+            <button id="translate-btn-global">
+                <span class="material-icons">language</span>
+                Language / 言語選択
+            </button>
+            <button id="view-history-btn">
+                <span class="material-icons">history</span>
+                学習履歴
+            </button>
+            <button id="open-user-password-modal-btn">
+                <span class="material-icons">vpn_key</span>
+                変更
+            </button>
+            <button id="push-toggle-btn" style="display: none;">
+                <span class="material-icons">notifications</span>
                 通知ON
             </button>
-            <button id="theme-toggle-btn" style="background: #444;" onclick="window.toggleTheme()">
-                <span class="theme-toggle-icon">🌙</span> <span class="theme-toggle-text">ダークモード</span>
+            <button id="theme-toggle-btn" onclick="window.toggleTheme()">
+                <span class="theme-toggle-icon material-icons">dark_mode</span>
+                <span class="theme-toggle-text">ダークモード</span>
             </button>
-            <button id="logout-btn">ログアウト</button>
+            <button id="logout-btn">
+                <span class="material-icons">logout</span>
+                ログアウト
+            </button>
         </div>
 
         <!-- モバイルメニュー背景オーバーレイ -->
@@ -464,9 +480,9 @@
     </div>
 
     <!-- バージョンを更新してキャッシュをクリア -->
-    <script src="script-auth.js?v=20260208-001"></script>
-    <script src="script.js?v=20260208-001"></script>
-    <script src="script-announcements.js?v=20260208-001"></script>
+    <script src="script-auth.js?v=20260208-002"></script>
+    <script src="script.js?v=20260208-002"></script>
+    <script src="script-announcements.js?v=20260208-002"></script>
 </body>
 
 </html>

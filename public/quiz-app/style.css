@@ -727,58 +727,83 @@ button:active {
         justify-content: space-between;
         align-items: center;
         padding: 15px 20px;
-        background-color: var(--primary-color);
-        color: white;
-        margin-bottom: 10px;
+        background-color: var(--surface-color);
+        /* 背景色を本体に合わせる */
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 0;
+        /* 下のマージンを削除 */
     }
 
     .mobile-menu-header h3 {
         margin: 0;
-        font-size: 1.2em;
-        color: white;
+        font-size: 1.1em;
+        color: var(--text-color);
+        /* 文字色をテーマに合わせる */
     }
 
     .close-btn {
         background: transparent;
         border: none;
-        color: white;
-        padding: 0;
+        color: var(--text-color);
+        padding: 5px;
         cursor: pointer;
         min-height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    /* メニュー内のボタン調整 */
+    /* メニュー内のボタン調整（リストスタイルにする） */
     .user-buttons button {
-        margin: 5px 15px;
-        width: calc(100% - 30px);
+        margin: 0;
+        /* マージンをなくしてくっつける */
+        width: 100%;
         text-align: left;
         color: var(--text-color) !important;
-        /* 内部スタイルの白文字を上書き */
         background-color: transparent !important;
-        /* 元の色を無効化 */
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
+        border: none !important;
+        /* 枠線を消す */
+        border-bottom: 1px solid var(--border-color) !important;
+        /* 下線を入れる */
+        border-radius: 0;
+        /* 角丸をなくす */
         box-shadow: none;
+        display: flex;
+        align-items: center;
         justify-content: flex-start;
+        padding: 15px 20px;
         text-shadow: none !important;
-        /* 内部スタイルのテキストシャドウを削除 */
-        /* 左寄せ */
+        font-size: 1rem;
+        gap: 15px;
+        /* アイコンと文字の間隔 */
+    }
+
+    .user-buttons button:last-child {
+        border-bottom: none !important;
     }
 
     .user-buttons button:hover {
-        background-color: #f5f5f5 !important;
+        background-color: rgba(128, 128, 128, 0.1) !important;
+        /* ホバー時の色を薄いグレーに */
         transform: none;
-        color: #333 !important;
-        /* ホバー時も色を強制 */
+        color: var(--text-color) !important;
     }
 
-    /* アイコンの色調整が必要な場合 */
-    .user-buttons button .material-icons {
-        margin-right: 10px;
-        color: #666;
+    /* アイコンの色調整 */
+    .user-buttons button .material-icons,
+    .user-buttons button .theme-toggle-icon {
+        margin-right: 0;
+        /* gapで制御するのでmargin不要 */
+        color: var(--subheading-color);
+        /* アイコンの色を落ち着かせる */
+        font-size: 20px;
+        width: 24px;
+        /* 固定幅で整列 */
+        text-align: center;
     }
 
-    /* ログアウトボタンは下部に配置などの調整も可能だが、一旦リストに含める */
+    /* ログアウトボタンだけ少し色を変えるなどの調整も可能だが、
+       Chromeメニューっぽくするなら統一感を重視 */
 
     /* オーバーレイ背景 */
     .mobile-menu-overlay {
