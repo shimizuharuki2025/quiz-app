@@ -2,7 +2,9 @@
   "name": "quiz-app",
   "version": "1.0.1",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "deploy": "node deploy.js",
+    "verify": "node verify_integrity.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

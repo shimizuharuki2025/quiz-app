@@ -618,6 +618,65 @@ app.post('/api/push/send', requireAdmin, (req, res) => {
     });
 });
 
+// 特定ユーザーへのプッシュ通知送信API (管理者用)
+app.post('/api/push/send-user', requireAdmin, (req, res) => {
+    const { userId, message } = req.body;
+
+    if (!userId || !message) {
+        return res.status(400).json({ success: false, message: 'ユーザーIDとメッセージは必須です。' });
+    }
+
+    if (!fs.existsSync(subscriptionsDataPath)) {
+        return res.status(404).json({ success: false, message: '有効な登録者がいません。' });
+    }
+
+    const subscriptions = JSON.parse(fs.readFileSync(subscriptionsDataPath, 'utf8'));
+
+    // 対象ユーザーのサブスクリプションを抽出
+    const userSubscriptions = subscriptions.filter(sub => sub.userId === userId);
+
+    if (userSubscriptions.length === 0) {
+        return res.status(404).json({ success: false, message: 'このユーザーはプッシュ通知を許可していません（またはデータが見つかりません）。' });
+    }
+
+    const payload = JSON.stringify({
+        title: '管理者からのメッセージ',
+        body: message,
+        icon: '/quiz-app/lawson_logo.png',
+        url: '/quiz-app/index.html',
+        severity: 'info'
+    });
+
+    const results = {
+        total: userSubscriptions.length,
+        success: 0,
+        failure: 0
+    };
+
+    const pushPromises = userSubscriptions.map(sub => {
+        return webpush.sendNotification(sub, payload)
+            .then(() => {
+                results.success++;
+            })
+            .catch(err => {
+                console.error('User Push error:', err.endpoint, err.statusCode);
+                results.failure++;
+                // 404/410なら削除
+                if (err.statusCode === 404 || err.statusCode === 410) {
+                    removeSubscription(sub.endpoint);
+                }
+            });
+    });
+
+    Promise.all(pushPromises).then(() => {
+        if (results.success > 0) {
+            res.json({ success: true, message: `${results.success}件のデバイスに送信しました。` });
+        } else {
+            res.status(500).json({ success: false, message: '送信に失敗しました。ユーザーが通知を拒否している可能性があります。' });
+        }
+    });
+});
+
 // プッシュ通知のステータス確認API (管理者用)
 app.get('/api/push/status', requireAdmin, (req, res) => {
     if (!fs.existsSync(subscriptionsDataPath)) {
