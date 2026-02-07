@@ -60,6 +60,13 @@ if (!fs.existsSync(quizDataPath)) {
 }
 
 // VAPID設定
+// VAPID設定（キーが無ければ生成）
+if (!fs.existsSync(vapidKeysPath)) {
+    const vapidKeys = webpush.generateVAPIDKeys();
+    fs.writeFileSync(vapidKeysPath, JSON.stringify(vapidKeys, null, 2));
+    console.log('✓ VAPIDキーを新規生成しました。');
+}
+
 if (fs.existsSync(vapidKeysPath)) {
     const vapidKeys = JSON.parse(fs.readFileSync(vapidKeysPath, 'utf8'));
     webpush.setVapidDetails(
@@ -67,6 +74,10 @@ if (fs.existsSync(vapidKeysPath)) {
         vapidKeys.publicKey,
         vapidKeys.privateKey
     );
+    // クライアント側で使うため、パブリックキーをAPIで提供できるようにする
+    app.get('/api/push/public-key', (req, res) => {
+        res.json({ publicKey: vapidKeys.publicKey });
+    });
     console.log('✓ VAPIDキーをロードしました。');
 } else {
     console.warn('⚠️ VAPIDキーが見つかりません。プッシュ通知が動作しません。');

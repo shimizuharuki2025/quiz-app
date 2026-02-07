@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ks-training-v5'; // バージョンアップでキャッシュ刷新
+const CACHE_NAME = 'ks-training-v7'; // バージョンアップでキャッシュ刷新
 const STATIC_ASSETS = [
     '/',
     '/index.html',

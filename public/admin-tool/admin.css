@@ -702,3 +702,44 @@ input:focus+.slider {
 input:checked+.slider:before {
     transform: translateX(22px);
 }
+/* Score Badges */
+.score-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.score-high {
+    background: var(--score-high-bg);
+    color: var(--score-high-text);
+}
+
+.score-mid {
+    background: var(--score-mid-bg);
+    color: var(--score-mid-text);
+}
+
+.score-low {
+    background: var(--score-low-bg);
+    color: var(--score-low-text);
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-active {
+    background-color: var(--success-color);
+    color: var(--success-text);
+}
+
+.status-banned {
+    background-color: var(--error-color);
+    color: var(--error-text);
+}
+

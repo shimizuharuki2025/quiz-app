@@ -234,18 +234,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         tr.innerHTML = `
                             <td style="padding: 10px; border-bottom: 1px solid #eee;">${date}</td>
                             <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.categoryName}</td>
-                            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold; color: ${item.score >= 80 ? '#4caf50' : '#333'}">${item.score}点</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;" class="${item.score >= 80 ? 'score-high' : 'score-low'}">${item.score}点</td>
                             <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.correctAnswers} / ${item.totalQuestions}</td>
                         `;
                         listBody.appendChild(tr);
                     });
                 }
             } else {
-                listBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">データの取得に失敗しました。</td></tr>';
+                listBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--error-text);">データの取得に失敗しました。</td></tr>';
             }
         } catch (error) {
             console.error('History fetch error:', error);
-            listBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">通信エラーが発生しました。</td></tr>';
+            listBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--error-text);">通信エラーが発生しました。</td></tr>';
         }
     }
 

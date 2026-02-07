@@ -5,7 +5,8 @@
 // グローバルな現在のユーザー情報
 let currentUser = null;
 let isGuestMode = false;
-const PUBLIC_VAPID_KEY = 'BPyUeYOdksDeB6WlbQSHoBVHfGNmHfC16syT6YLKgdhluNp4PY1z5YwKb8sYk83mzaxWatdsCve8u5tipBbNAII';
+// let isGuestMode = false; // 削除
+// const PUBLIC_VAPID_KEY = 'YOUR_PUBLIC_KEY'; // サーバーから取得するため削除
 
 // ページ読み込み時にユーザー情報を取得
 async function initializeAuth() {
@@ -303,10 +304,10 @@ async function updatePushStatus() {
         const subscription = await registration.pushManager.getSubscription();
 
         if (subscription) {
-            pushToggleBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">notifications_off</span> 通知を解除する';
+            pushToggleBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">notifications_off</span> 通知OFF';
             pushToggleBtn.style.background = '#757575'; // グレー
         } else {
-            pushToggleBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">notifications</span> 通知を有効にする';
+            pushToggleBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">notifications</span> 通知ON';
             pushToggleBtn.style.background = '#e91e63'; // ピンク
         }
     } catch (error) {
@@ -332,9 +333,14 @@ async function togglePushSubscription() {
 // サブスクライブ
 async function subscribeToPush(registration) {
     try {
+        // サーバーからVAPID公開鍵を取得
+        const keyResponse = await fetch('/api/push/public-key');
+        const keyData = await keyResponse.json();
+        const publicKey = keyData.publicKey;
+
         const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
+            applicationServerKey: urlBase64ToUint8Array(publicKey)
         });
 
         const response = await fetch('/api/push/subscribe', {
@@ -345,7 +351,7 @@ async function subscribeToPush(registration) {
         });
 
         if (response.ok) {
-            alert('通知を有効にしました。');
+            alert('通知をONにしました。');
         } else {
             throw new Error('Server registration failed');
         }
@@ -366,7 +372,7 @@ async function unsubscribeFromPush(subscription) {
         });
 
         await subscription.unsubscribe();
-        alert('通知を解除しました。');
+        alert('通知をOFFにしました。');
     } catch (error) {
         console.error('Failed to unsubscribe:', error);
         alert('解除に失敗しましたが、端末側の登録は削除しました。');
