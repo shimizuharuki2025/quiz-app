@@ -3,7 +3,8 @@
    ======================================== */
 
 .announcement-banner {
-    margin: 20px auto;
+    margin: 0 auto 15px auto;
+    /* スタックしたときに間隔を空ける */
     max-width: 900px;
     border-radius: 12px;
     overflow: hidden;
@@ -11,6 +12,8 @@
     opacity: 0;
     transform: translateY(-20px);
     transition: all 0.3s ease-in-out;
+    display: none;
+    /* 初期状態は非表示 */
 }
 
 .announcement-banner.announcement-show {

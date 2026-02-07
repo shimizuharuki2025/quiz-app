@@ -15,22 +15,40 @@ async function loadAndDisplayAnnouncements() {
                 (severityOrder[b.severity] || 0) - (severityOrder[a.severity] || 0)
             );
 
-            // 最も重要度の高いお知らせを表示
-            const announcement = sortedAnnouncements[0];
-            displayAnnouncementBanner(announcement);
+            // すべてのお知らせを表示（以前は[0]のみだった）
+            displayAnnouncements(sortedAnnouncements);
         }
     } catch (error) {
         console.error('お知らせの読み込みエラー:', error);
     }
 }
 
-// お知らせバナーを表示
-function displayAnnouncementBanner(announcement) {
-    const banner = document.getElementById('announcement-banner');
-    const icon = document.getElementById('announcement-icon');
-    const message = document.getElementById('announcement-message');
+// 複数のお知らせバナーを表示
+function displayAnnouncements(announcements) {
+    const container = document.getElementById('announcements-container');
+    if (!container) return;
 
-    if (!banner || !icon || !message) return;
+    // コンテナをクリア
+    container.innerHTML = '';
+
+    announcements.forEach((announcement, index) => {
+        const banner = createAnnouncementElement(announcement);
+        container.appendChild(banner);
+
+        // 少しずつずらしてアニメーション表示（0.1秒間隔）
+        setTimeout(() => {
+            banner.style.display = 'block';
+            // display: blockが適用された後にアニメーションクラスを追加するためにわずかに待つ
+            requestAnimationFrame(() => {
+                banner.classList.add('announcement-show');
+            });
+        }, index * 100);
+    });
+}
+
+// お知らせバナーのHTML要素を作成
+function createAnnouncementElement(announcement) {
+    const div = document.createElement('div');
 
     // 重要度に応じたアイコンと色設定
     const severityConfig = {
@@ -38,20 +56,33 @@ function displayAnnouncementBanner(announcement) {
         warning: { icon: '⚠️', className: 'announcement-warning' },
         error: { icon: '🚨', className: 'announcement-error' }
     };
-
     const config = severityConfig[announcement.severity] || severityConfig.info;
 
-    // バナーの内容を設定
-    icon.textContent = config.icon;
-    message.textContent = announcement.message;
+    div.className = `announcement-banner ${config.className}`;
 
-    // 既存のクラスをリセット
-    banner.className = 'announcement-banner';
-    banner.classList.add(config.className);
+    div.innerHTML = `
+        <div class="announcement-content">
+            <span class="announcement-icon">${config.icon}</span>
+            <span class="announcement-message">${escapeHtml(announcement.message)}</span>
+        </div>
+    `;
 
-    // バナーを表示（アニメーション付き）
-    banner.style.display = 'block';
-    setTimeout(() => banner.classList.add('announcement-show'), 100);
+    return div;
+}
+
+// XSS対策用エスケープ関数
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, function (match) {
+        const escape = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+        return escape[match];
+    });
 }
 
 // ページ読み込み時にお知らせを表示
