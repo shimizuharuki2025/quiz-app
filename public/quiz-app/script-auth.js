@@ -306,8 +306,8 @@ async function updatePushStatus() {
     if (isIOS && !isStandalone) {
         // iOSでブラウザから見ている場合は、通知が使えない可能性が高い
         // ボタンは表示するが、クリック時に案内を出すようにする
-        pushToggleBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">notifications_off</span> 通知設定へ';
-        pushToggleBtn.style.background = '#757575';
+        pushToggleBtn.innerHTML = '<span class="material-icons">notifications_off</span> 通知設定へ';
+        // 背景色はCSSで管理するため削除
         pushToggleBtn.onclick = (e) => {
             e.stopPropagation();
             alert('iPhoneで通知を受け取るには、このアプリを「ホーム画面に追加」して、そこから起動する必要があります。\n\n手順:\n1. 共有ボタン（四角から矢印が出ているアイコン）を押す\n2. 「ホーム画面に追加」を選択\n3. ホーム画面に追加されたアイコンからアプリを開く');
@@ -324,11 +324,11 @@ async function updatePushStatus() {
         const subscription = await registration.pushManager.getSubscription();
 
         if (subscription) {
-            pushToggleBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">notifications_off</span> 通知OFF';
-            pushToggleBtn.style.background = '#757575'; // グレー
+            pushToggleBtn.innerHTML = '<span class="material-icons">notifications_off</span> 通知OFF';
+            // pushToggleBtn.style.background = '#757575'; // CSSで管理
         } else {
-            pushToggleBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">notifications</span> 通知ON';
-            pushToggleBtn.style.background = '#e91e63'; // ピンク
+            pushToggleBtn.innerHTML = '<span class="material-icons">notifications</span> 通知ON';
+            // pushToggleBtn.style.background = '#e91e63'; // CSSで管理
         }
     } catch (error) {
         console.error('Error checking push status:', error);

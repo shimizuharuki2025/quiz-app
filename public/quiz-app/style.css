@@ -699,83 +699,104 @@ button:active {
         position: fixed;
         top: 0;
         right: 0;
-        /* 右端に配置 */
         transform: translateX(100%);
-        /* 画面外（右）に移動 */
-        width: 250px;
+        width: 100%;
+        /* 全幅にする */
+        max-width: 400px;
+        /* タブレットなどで広がりすぎないように */
         height: 100vh;
-        background-color: var(--surface-color);
+        background-color: #f5f7fa;
+        /* 背景を少しグレーに */
         box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
-        flex-direction: column;
-        padding: 0;
-        transition: transform 0.3s ease-in-out;
-        /* rightではなくtransformをアニメーション */
+
+        /* Grid Layout */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(auto-fill, minmax(120px, 1fr));
+        grid-auto-rows: minmax(120px, 1fr);
+        gap: 15px;
+        padding: 20px;
+        align-content: start;
+        /* 上詰め */
+
+        transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
         z-index: 1200;
-        /* 最前面 */
         overflow-y: auto;
     }
 
     .user-buttons.open {
         transform: translateX(0);
-        /* 画面内に移動 */
     }
 
-    /* メニューヘッダー */
+    /* メニューヘッダー（左上のタイルとして配置） */
     .mobile-menu-header {
         display: flex !important;
-        /* flex指定 */
-        justify-content: space-between;
+        flex-direction: column;
+        justify-content: center;
         align-items: center;
-        padding: 15px 20px;
-        background-color: var(--surface-color);
-        /* 背景色を本体に合わせる */
-        border-bottom: 1px solid var(--border-color);
+        padding: 10px;
+        background-color: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         margin-bottom: 0;
-        /* 下のマージンを削除 */
+        border: none;
+        position: relative;
+        grid-column: 1 / 2;
+        /* 1列目 */
+        min-height: 120px;
     }
 
     .mobile-menu-header h3 {
         margin: 0;
         font-size: 1.1em;
-        color: var(--text-color);
-        /* 文字色をテーマに合わせる */
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 10px;
     }
 
     .close-btn {
-        background: transparent;
+        background: #f0f0f0;
         border: none;
-        color: var(--text-color);
-        padding: 5px;
+        color: #666;
+        padding: 8px;
         cursor: pointer;
-        min-height: auto;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 40px;
+        height: 40px;
+        transition: background 0.2s;
     }
 
-    /* メニュー内のボタン調整（リストスタイルにする） */
+    .close-btn:hover {
+        background: #e0e0e0;
+    }
+
+    /* メニュー内のボタン（タイルスタイル） */
     .user-buttons button {
         margin: 0;
-        /* マージンをなくしてくっつける */
         width: 100%;
-        text-align: left;
-        color: var(--text-color) !important;
-        background-color: transparent !important;
+        height: 100%;
+        min-height: 120px;
+        /* 正方形に近づける */
+        text-align: center;
+        color: #444 !important;
+        background-color: white !important;
         border: none !important;
-        /* 枠線を消す */
-        border-bottom: 1px solid var(--border-color) !important;
-        /* 下線を入れる */
-        border-radius: 0;
-        /* 角丸をなくす */
-        box-shadow: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         display: flex;
+        flex-direction: column;
+        /* 縦並び */
         align-items: center;
-        justify-content: flex-start;
-        padding: 15px 20px;
+        justify-content: center;
+        padding: 15px;
         text-shadow: none !important;
-        font-size: 1rem;
-        gap: 15px;
-        /* アイコンと文字の間隔 */
+        font-size: 0.95rem;
+        font-weight: 600;
+        gap: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
     }
 
     .user-buttons button:last-child {
@@ -783,27 +804,60 @@ button:active {
     }
 
     .user-buttons button:hover {
-        background-color: rgba(128, 128, 128, 0.1) !important;
-        /* ホバー時の色を薄いグレーに */
-        transform: none;
-        color: var(--text-color) !important;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        background-color: white !important;
     }
 
-    /* アイコンの色調整 */
+    .user-buttons button:active {
+        transform: scale(0.98);
+    }
+
+    /* アイコン共通設定 */
     .user-buttons button .material-icons,
     .user-buttons button .theme-toggle-icon {
         margin-right: 0;
-        /* gapで制御するのでmargin不要 */
-        color: var(--subheading-color);
-        /* アイコンの色を落ち着かせる */
-        font-size: 20px;
-        width: 24px;
-        /* 固定幅で整列 */
-        text-align: center;
+        font-size: 32px;
+        /* アイコン大きく */
+        width: auto;
     }
 
-    /* ログアウトボタンだけ少し色を変えるなどの調整も可能だが、
-       Chromeメニューっぽくするなら統一感を重視 */
+    /* === 色分け（カラーコーディング） === */
+
+    /* 管理画面: 紫 */
+    #admin-panel-btn .material-icons {
+        color: #8e44ad;
+    }
+
+    /* 言語: 青 */
+    #translate-btn-global .material-icons {
+        color: #2980b9;
+    }
+
+    /* 履歴: 濃い青/紺 */
+    #view-history-btn .material-icons {
+        color: #2c3e50;
+    }
+
+    /* パスワード変更: オレンジ */
+    #open-user-password-modal-btn .material-icons {
+        color: #e67e22;
+    }
+
+    /* 通知: ピンク */
+    #push-toggle-btn .material-icons {
+        color: #e91e63;
+    }
+
+    /* ダークモード: 黄色/黒（モードによるが、ここではアクセントとして） */
+    #theme-toggle-btn .theme-toggle-icon {
+        font-size: 28px;
+    }
+
+    /* ログアウト: 赤 */
+    #logout-btn .material-icons {
+        color: #c0392b;
+    }
 
     /* オーバーレイ背景 */
     .mobile-menu-overlay {
@@ -813,7 +867,9 @@ button:active {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+        /* すりガラス効果 */
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.3s;
