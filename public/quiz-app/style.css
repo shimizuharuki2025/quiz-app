@@ -643,7 +643,8 @@ button:active {
 .mobile-menu-btn,
 .mobile-menu-overlay,
 .mobile-menu-header {
-    display: none;
+    display: none !important;
+    /* 内部スタイルシートの display: flex に勝つため !important */
 }
 
 /* ユーザー情報のヘッダーコンテナ（PC用） */
@@ -676,7 +677,8 @@ button:active {
 
     /* ハンバーガーボタンのスタイル */
     .mobile-menu-btn {
-        display: flex;
+        display: flex !important;
+        /* スマホでは表示 */
         align-items: center;
         justify-content: center;
         background: transparent;
@@ -720,7 +722,8 @@ button:active {
 
     /* メニューヘッダー */
     .mobile-menu-header {
-        display: flex;
+        display: flex !important;
+        /* flex指定 */
         justify-content: space-between;
         align-items: center;
         padding: 15px 20px;
@@ -749,20 +752,24 @@ button:active {
         margin: 5px 15px;
         width: calc(100% - 30px);
         text-align: left;
-        color: var(--text-color);
+        color: var(--text-color) !important;
+        /* 内部スタイルの白文字を上書き */
         background-color: transparent !important;
         /* 元の色を無効化 */
         border: 1px solid var(--border-color);
-        color: #333;
         border-radius: 6px;
         box-shadow: none;
         justify-content: flex-start;
+        text-shadow: none !important;
+        /* 内部スタイルのテキストシャドウを削除 */
         /* 左寄せ */
     }
 
     .user-buttons button:hover {
         background-color: #f5f5f5 !important;
         transform: none;
+        color: #333 !important;
+        /* ホバー時も色を強制 */
     }
 
     /* アイコンの色調整が必要な場合 */
