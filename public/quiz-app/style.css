@@ -822,41 +822,79 @@ button:active {
         width: auto;
     }
 
-    /* === 色分け（カラーコーディング） === */
+    /* === 色分け（カラーコーディング：背景色＋アイコン） === */
 
-    /* 管理画面: 紫 */
+    /* 管理画面: 紫系 */
+    #admin-panel-btn {
+        background-color: #f3e5f5 !important;
+        color: #6a1b9a !important;
+    }
+
     #admin-panel-btn .material-icons {
         color: #8e44ad;
     }
 
-    /* 言語: 青 */
+    /* 言語: 青系 */
+    #translate-btn-global {
+        background-color: #e3f2fd !important;
+        color: #1565c0 !important;
+    }
+
     #translate-btn-global .material-icons {
-        color: #2980b9;
+        color: #1976d2;
     }
 
-    /* 履歴: 濃い青/紺 */
+    /* 履歴: 紺系（背景は薄い青紫） */
+    #view-history-btn {
+        background-color: #e8eaf6 !important;
+        color: #283593 !important;
+    }
+
     #view-history-btn .material-icons {
-        color: #2c3e50;
+        color: #283593;
     }
 
-    /* パスワード変更: オレンジ */
+    /* パスワード変更: オレンジ系 */
+    #open-user-password-modal-btn {
+        background-color: #fff3e0 !important;
+        color: #e65100 !important;
+    }
+
     #open-user-password-modal-btn .material-icons {
-        color: #e67e22;
+        color: #f57c00;
     }
 
-    /* 通知: ピンク */
+    /* 通知: ピンク系 */
+    #push-toggle-btn {
+        background-color: #fce4ec !important;
+        color: #c2185b !important;
+    }
+
     #push-toggle-btn .material-icons {
-        color: #e91e63;
+        color: #d81b60;
     }
 
-    /* ダークモード: 黄色/黒（モードによるが、ここではアクセントとして） */
+    /* ダークモード: イエロー/グレー系 */
+    #theme-toggle-btn {
+        background-color: #fffde7 !important;
+        /* 薄い黄色 */
+        color: #fbc02d !important;
+    }
+
     #theme-toggle-btn .theme-toggle-icon {
         font-size: 28px;
     }
 
-    /* ログアウト: 赤 */
+    /* ログアウト: 赤系 */
+    #logout-btn {
+        background-color: #ffebee !important;
+        color: #c62828 !important;
+        border: 1px solid #ffcdd2 !important;
+        /* ログアウトだけ少し境界を強調 */
+    }
+
     #logout-btn .material-icons {
-        color: #c0392b;
+        color: #c62828;
     }
 
     /* オーバーレイ背景 */
