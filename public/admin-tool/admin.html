@@ -147,6 +147,21 @@
         </button>
     </div>
 
+    <!-- プッシュ通知診断セクション（新規追加） -->
+    <div class="card" style="margin-top: 20px; border-left: 5px solid #e91e63;">
+        <h2>🔔 プッシュ通知ステータス</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <p>現在登録されているデバイス数: <strong id="push-subscriber-count" style="font-size: 1.2em;">読み込み中...</strong></p>
+                <p style="font-size: 0.9em; color: #666;">※数字が 0 の場合、誰も通知を受け取れません。</p>
+            </div>
+            <button id="send-test-push-btn" class="btn-secondary"
+                style="background: #e91e63; color: white; border: none;">
+                <span class="material-icons">send_to_mobile</span> テスト通知を全員に送信
+            </button>
+        </div>
+    </div>
+
     <div id="editor-area" style="display: none;">
         <h2 id="editing-category-name"></h2>
         <div class="tab-nav">

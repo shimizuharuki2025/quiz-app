@@ -299,6 +299,26 @@ async function updatePushStatus() {
 
     pushToggleBtn.style.display = 'flex';
 
+    // iOSかつPWAモード（ホーム画面）でない場合、ボタンを非表示にするか、注意事項を表示する
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    if (isIOS && !isStandalone) {
+        // iOSでブラウザから見ている場合は、通知が使えない可能性が高い
+        // ボタンは表示するが、クリック時に案内を出すようにする
+        pushToggleBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">notifications_off</span> 通知設定へ';
+        pushToggleBtn.style.background = '#757575';
+        pushToggleBtn.onclick = (e) => {
+            e.stopPropagation();
+            alert('iPhoneで通知を受け取るには、このアプリを「ホーム画面に追加」して、そこから起動する必要があります。\n\n手順:\n1. 共有ボタン（四角から矢印が出ているアイコン）を押す\n2. 「ホーム画面に追加」を選択\n3. ホーム画面に追加されたアイコンからアプリを開く');
+        };
+        return;
+    } else {
+        // イベントリスナーを再設定（上書き防止）
+        pushToggleBtn.onclick = null;
+        pushToggleBtn.addEventListener('click', togglePushSubscription);
+    }
+
     try {
         const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.getSubscription();
@@ -346,7 +366,11 @@ async function subscribeToPush(registration) {
         const response = await fetch('/api/push/subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(subscription),
+            body: JSON.stringify({
+                subscription: subscription,
+                userId: window.currentUser ? window.currentUser.id : null,
+                employeeCode: window.currentUser ? window.currentUser.employeeCode : null
+            }),
             credentials: 'include'
         });
 
@@ -357,7 +381,11 @@ async function subscribeToPush(registration) {
         }
     } catch (error) {
         console.error('Failed to subscribe:', error);
-        alert('通知の有効化に失敗しました。ブラウザの設定で許可されているか確認してください。');
+        if (error.name === 'NotAllowedError') {
+            alert('通知がブロックされました。\niPhoneの設定 → 通知 → このアプリを選択し、「通知を許可」をONにしてください。');
+        } else {
+            alert('通知の有効化に失敗しました。iPhoneの場合はホーム画面に追加してから再度お試しください。');
+        }
     }
 }
 

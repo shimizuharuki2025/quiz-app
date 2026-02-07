@@ -70,7 +70,7 @@ if (!fs.existsSync(vapidKeysPath)) {
 if (fs.existsSync(vapidKeysPath)) {
     const vapidKeys = JSON.parse(fs.readFileSync(vapidKeysPath, 'utf8'));
     webpush.setVapidDetails(
-        'mailto:example@yourdomain.com',
+        'mailto:admin@ks-training.app',
         vapidKeys.publicKey,
         vapidKeys.privateKey
     );
@@ -110,7 +110,25 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 2. 静的ファイルの配信
+// 2.// キャッシュリセット用ミドルウェア (特定のファイルへのアクセス時に強力なキャッシュクリアを行う)
+app.use((req, res, next) => {
+    // ユーザー管理画面や管理トップへのアクセス時
+    if (req.path.includes('/admin-tool/users.html') || req.path.includes('/admin-tool/admin.html')) {
+        res.set('Clear-Site-Data', '"cache"');
+    }
+    next();
+});
+
+// キャッシュリセット用ミドルウェア (特定のファイルへのアクセス時に強力なキャッシュクリアを行う)
+app.use((req, res, next) => {
+    // ユーザー管理画面や管理トップへのアクセス時
+    if (req.path.includes('/admin-tool/users.html') || req.path.includes('/admin-tool/admin.html')) {
+        res.set('Clear-Site-Data', '"cache"');
+    }
+    next();
+});
+
+// 静的ファイルの配信
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- ▼▼▼【セッション管理の設定】▼▼▼ ---
@@ -469,7 +487,7 @@ require('./auth-api')(app, usersDataPath, learningHistoryPath);
 // ========================================
 
 // サブスクリプション保存関数
-function saveSubscription(subscription) {
+function saveSubscription(subscription, userId = null, employeeCode = null) {
     let subscriptions = [];
     if (fs.existsSync(subscriptionsDataPath)) {
         try {
@@ -478,13 +496,28 @@ function saveSubscription(subscription) {
             console.error('Subscriptions parse error:', e);
         }
     }
-    // 重複チェック (endpointで判断)
-    if (!subscriptions.find(s => s.endpoint === subscription.endpoint)) {
-        subscriptions.push(subscription);
+
+    // 既存のサブスクリプションを探す
+    const existingIndex = subscriptions.findIndex(s => s.endpoint === subscription.endpoint);
+
+    const newSubData = {
+        ...subscription,
+        userId: userId,           // ユーザーIDを紐付け
+        employeeCode: employeeCode, // 従業員コードも念のため
+        updatedAt: new Date().toISOString()
+    };
+
+    if (existingIndex !== -1) {
+        // 更新（ユーザー情報が変わった可能性があるので上書き）
+        subscriptions[existingIndex] = newSubData;
+        fs.writeFileSync(subscriptionsDataPath, JSON.stringify(subscriptions, null, 2));
+        return true;
+    } else {
+        // 新規追加
+        subscriptions.push(newSubData);
         fs.writeFileSync(subscriptionsDataPath, JSON.stringify(subscriptions, null, 2));
         return true;
     }
-    return false;
 }
 
 // サブスクリプション削除関数
@@ -506,11 +539,30 @@ function removeSubscription(endpoint) {
 }
 
 app.post('/api/push/subscribe', (req, res) => {
-    const subscription = req.body;
-    if (saveSubscription(subscription)) {
-        res.status(201).json({ success: true, message: 'サブスクリプションを保存しました。' });
+    // クライアントからのリクエストボディを解析
+    const body = req.body;
+
+    // サブスクリプションオブジェクトを取得（構造によって場所が違う可能性を考慮）
+    const subscription = body.subscription || body;
+
+    // ユーザー情報を取得
+    const userId = body.userId || (req.session ? req.session.userId : null);
+    const employeeCode = body.employeeCode || (req.session ? req.session.employeeCode : null);
+
+    // 純粋なSubscriptionオブジェクトを作成（余計なプロパティを除去）
+    const cleanSubscription = {
+        endpoint: subscription.endpoint,
+        keys: subscription.keys
+    };
+
+    if (subscription && subscription.endpoint) {
+        if (saveSubscription(cleanSubscription, userId, employeeCode)) {
+            res.status(201).json({ success: true, message: 'サブスクリプションを保存しました。' });
+        } else {
+            res.status(200).json({ success: true, message: '更新しました。' });
+        }
     } else {
-        res.status(200).json({ success: true, message: '既に登録されています。' });
+        res.status(400).json({ success: false, message: '無効なリクエストです。' });
     }
 });
 
@@ -555,6 +607,53 @@ app.post('/api/push/send', requireAdmin, (req, res) => {
                 console.error('Push error:', err.endpoint, err.statusCode);
                 results.failure++;
                 // 期限切れや無効なトークンを自動削除する（404, 410）
+                if (err.statusCode === 404 || err.statusCode === 410) {
+                    removeSubscription(sub.endpoint);
+                }
+            });
+    });
+
+    Promise.all(pushPromises).then(() => {
+        res.json({ success: true, results });
+    });
+});
+
+// プッシュ通知のステータス確認API (管理者用)
+app.get('/api/push/status', requireAdmin, (req, res) => {
+    if (!fs.existsSync(subscriptionsDataPath)) {
+        return res.json({ success: true, count: 0 });
+    }
+    try {
+        const subscriptions = JSON.parse(fs.readFileSync(subscriptionsDataPath, 'utf8'));
+        res.json({ success: true, count: subscriptions.length });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'データ読み込みエラー' });
+    }
+});
+
+// テスト通知送信API (管理者用)
+app.post('/api/push/send-test', requireAdmin, (req, res) => {
+    if (!fs.existsSync(subscriptionsDataPath)) {
+        return res.status(404).json({ success: false, message: '有効な登録者がいません。' });
+    }
+
+    const subscriptions = JSON.parse(fs.readFileSync(subscriptionsDataPath, 'utf8'));
+    // テスト用のペイロード
+    const payload = JSON.stringify({
+        title: 'テスト通知',
+        body: 'これはプッシュ通知のテストです。正しく表示されていますか？',
+        icon: '/quiz-app/lawson_logo.png',
+        url: '/quiz-app/index.html',
+        severity: 'info'
+    });
+
+    const results = { count: subscriptions.length, success: 0, failure: 0 };
+    const pushPromises = subscriptions.map(sub => {
+        return webpush.sendNotification(sub, payload)
+            .then(() => results.success++)
+            .catch(err => {
+                console.error('Test Push error:', err.statusCode);
+                results.failure++;
                 if (err.statusCode === 404 || err.statusCode === 410) {
                     removeSubscription(sub.endpoint);
                 }

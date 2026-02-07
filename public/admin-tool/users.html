@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="/theme-toggle.js"></script>
-    <script src="users.js?v=20260207-001" defer></script>
+    <script src="users_admin.js?v=20260207-004" defer></script>
     <link rel="icon" type="image/png" href="../quiz-app/lawson_logo.png">
     <style>
         .user-table-container {
@@ -250,7 +250,7 @@
             </button>
         </div>
 
-        <h1>ユーザー管理</h1>
+        <h1>ユーザー管理 <span style="font-size: 0.6em; color: #e91e63; vertical-align: middle;">[最新]</span></h1>
 
         <div class="card">
             <h2>登録済みユーザー一覧</h2>
@@ -415,7 +415,6 @@
         </div>
     </div>
 
-    <!-- バン理由入力モーダル -->
     <div id="ban-reason-modal" class="modal-background" style="display: none;">
         <div class="modal-content" style="max-width: 400px;">
             <h2>アカウントの停止</h2>
@@ -425,6 +424,23 @@
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button id="confirm-ban-btn" class="btn-danger">停止（バン）を実行</button>
                 <button id="close-ban-modal-btn" class="btn-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 個別プッシュ通知送信モーダル -->
+    <div id="push-user-modal" class="modal-background" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2>個別メッセージ送信</h2>
+            <p><strong id="push-target-name"></strong> さんにプッシュ通知を送ります。</p>
+            <div class="form-group">
+                <label>メッセージ内容</label>
+                <textarea id="push-user-message" placeholder="例: 明日のシフトについて確認です..."
+                    style="width: 100%; height: 120px; padding: 10px; margin-top: 5px;"></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button id="send-push-user-btn" class="btn-primary" style="background: #e91e63;">送信</button>
+                <button id="close-push-modal-btn" class="btn-secondary">キャンセル</button>
             </div>
         </div>
     </div>

@@ -406,12 +406,62 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.user && data.user.isAdmin) {
                 authContainer.style.display = 'none';
                 adminContent.style.display = 'block';
+                adminContent.style.display = 'block';
                 loadAllData();
+                checkPushStatus(); // 追加
             }
         } catch (error) {
             console.error('自動ログインエラー:', error);
         }
     };
+
+    // プッシュ通知ステータス確認
+    const checkPushStatus = async () => {
+        try {
+            const countEl = document.getElementById('push-subscriber-count');
+            if (!countEl) return;
+
+            const response = await fetch('/api/push/status');
+            const data = await response.json();
+
+            if (data.success) {
+                countEl.textContent = `${data.count} 台`;
+                if (data.count === 0) {
+                    countEl.style.color = 'red';
+                } else {
+                    countEl.style.color = 'green';
+                }
+            } else {
+                countEl.textContent = 'エラー';
+            }
+        } catch (error) {
+            console.error('Push status check failed:', error);
+        }
+    };
+
+    // テスト通知送信イベント
+    const sendTestPushBtn = document.getElementById('send-test-push-btn');
+    if (sendTestPushBtn) {
+        sendTestPushBtn.addEventListener('click', async () => {
+            if (!confirm('登録されている全デバイスにテスト通知を送信しますか？')) return;
+
+            try {
+                const response = await fetch('/api/push/send-test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`送信完了: 成功 ${result.results.success} / 失敗 ${result.results.failure}`);
+                } else {
+                    alert('送信失敗: ' + result.message);
+                }
+            } catch (e) {
+                alert('通信エラーが発生しました');
+            }
+        });
+    }
 
     checkAutoLogin();
 
@@ -435,6 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 authContainer.style.display = 'none';
                 adminContent.style.display = 'block';
                 loadAllData();
+                checkPushStatus(); // 追加
             } else {
                 messageEl.textContent = data.message || '認証に失敗しました。';
             }

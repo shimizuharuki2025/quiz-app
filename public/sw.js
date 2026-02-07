@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ks-training-v7'; // バージョンアップでキャッシュ刷新
+const CACHE_NAME = 'ks-training-v9'; // バージョンアップでキャッシュ刷新
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -78,6 +78,11 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(
             caches.match(event.request).then((response) => {
                 return response || fetch(event.request).then((networkResponse) => {
+                    // 206 Partial Contentなどはキャッシュしない
+                    if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+                        return networkResponse;
+                    }
+
                     return caches.open(CACHE_NAME).then((cache) => {
                         cache.put(event.request, networkResponse.clone());
                         return networkResponse;

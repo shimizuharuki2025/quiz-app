@@ -1,5 +1,6 @@
 // users.js - ユーザー管理ツールのロジック
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Users.js v20260207-003 loaded');
     const authForm = document.getElementById('auth-form');
     const adminContent = document.getElementById('admin-content');
     const authContainer = document.getElementById('auth-container');
@@ -157,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td>
                     <div class="action-btns">
+                        <button class="btn-primary btn-small start-push-btn" data-id="${user.id}" data-name="${user.name}" style="background-color: #e91e63;">通知</button>
                         <button class="btn-primary btn-small history-btn" data-id="${user.id}">履歴</button>
                         <button class="btn-secondary btn-small edit-btn" data-id="${user.id}">編集</button>
                         <button class="${isBanned ? 'btn-primary' : 'btn-danger'} btn-small ban-btn" data-id="${user.id}" data-banned="${isBanned}">
@@ -194,11 +196,59 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         });
 
+        document.querySelectorAll('.start-push-btn').forEach(btn => btn.onclick = () => openPushModal(btn.dataset.id, btn.dataset.name));
         document.querySelectorAll('.history-btn').forEach(btn => btn.onclick = () => openHistoryModal(btn.dataset.id));
         document.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = () => openEditModal(btn.dataset.id));
         document.querySelectorAll('.ban-btn').forEach(btn => btn.onclick = () => toggleBan(btn.dataset.id, btn.dataset.banned === 'true'));
         document.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = () => deleteUser(btn.dataset.id));
     }
+
+    // 個別プッシュ通知モーダル
+    let currentPushTargetId = null;
+
+    function openPushModal(userId, userName) {
+        currentPushTargetId = userId;
+        document.getElementById('push-target-name').textContent = userName;
+        document.getElementById('push-user-message').value = '';
+        document.getElementById('push-user-modal').style.display = 'flex';
+    }
+
+    document.getElementById('send-push-user-btn').onclick = async () => {
+        const message = document.getElementById('push-user-message').value;
+        if (!message) {
+            alert('メッセージを入力してください。');
+            return;
+        }
+
+        if (!confirm('このユーザーにプッシュ通知を送信しますか？')) return;
+
+        try {
+            const response = await fetch('/api/push/send-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: currentPushTargetId,
+                    message: message
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`送信完了: ${data.message}`);
+                document.getElementById('push-user-modal').style.display = 'none';
+            } else {
+                alert('送信失敗: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Push error:', error);
+            alert('通信エラーが発生しました。');
+        }
+    };
+
+    document.getElementById('close-push-modal-btn').onclick = () => {
+        document.getElementById('push-user-modal').style.display = 'none';
+    };
 
     // 学習履歴モーダル
     async function openHistoryModal(userId) {
