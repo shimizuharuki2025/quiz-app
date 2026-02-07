@@ -233,10 +233,22 @@
 <body>
     <!-- ログインユーザー用情報バー -->
     <div id="user-info-bar" class="user-info-bar" style="display: none;">
-        <div class="user-info">
-            <span>👤 <strong id="user-name"></strong> さん</span>
+        <div class="user-info-header">
+            <div class="user-info">
+                <span>👤 <strong id="user-name"></strong> さん</span>
+            </div>
+            <!-- モバイル用ハンバーガーメニューボタン -->
+            <button id="mobile-menu-toggle" class="mobile-menu-btn">
+                <span class="material-icons">menu</span>
+            </button>
         </div>
-        <div class="user-buttons">
+
+        <!-- PCでは通常表示、モバイルではドロワーメニューになるコンテナ -->
+        <div id="user-menu-items" class="user-buttons">
+            <div class="mobile-menu-header">
+                <h3>メニュー</h3>
+                <button id="mobile-menu-close" class="close-btn"><span class="material-icons">close</span></button>
+            </div>
             <button id="admin-panel-btn" style="background: #673ab7; display: none;">🛠 管理画面へ</button>
             <button id="translate-btn-global" style="background: #2a5298;">🌐 Language / 言語選択</button>
             <button id="view-history-btn" style="background: #1e3c72;">📊 学習履歴</button>
@@ -250,6 +262,9 @@
             </button>
             <button id="logout-btn">ログアウト</button>
         </div>
+
+        <!-- モバイルメニュー背景オーバーレイ -->
+        <div id="mobile-menu-overlay" class="mobile-menu-overlay"></div>
     </div>
 
     <!-- ゲストモード情報バー -->

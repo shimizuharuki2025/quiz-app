@@ -634,3 +634,159 @@ button:active {
     background-color: #007bbb;
     /* 少し濃い青にする */
 }
+
+/* =============================================== */
+/* --- 【追加】モバイルハンバーガーメニュー --- */
+/* =============================================== */
+
+/* デフォルト（PC）ではハンバーガーボタンとオーバーレイを非表示 */
+.mobile-menu-btn,
+.mobile-menu-overlay,
+.mobile-menu-header {
+    display: none;
+}
+
+/* ユーザー情報のヘッダーコンテナ（PC用） */
+.user-info-header {
+    display: contents;
+    /* flexの影響を受けないようにする */
+}
+
+
+@media (max-width: 768px) {
+
+    /* ユーザー情報バーのレイアウト調整 */
+    .user-info-bar {
+        position: relative;
+        flex-direction: row;
+        /* 横並びに戻す */
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        z-index: 1100;
+        /* オーバーレイより上にする */
+    }
+
+    .user-info-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    /* ハンバーガーボタンのスタイル */
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 5px;
+        cursor: pointer;
+        min-height: auto;
+        min-width: auto;
+    }
+
+    .mobile-menu-btn .material-icons {
+        font-size: 28px;
+    }
+
+    /* ドロワーメニュー（旧 .user-buttons）のスタイル */
+    .user-buttons {
+        position: fixed;
+        top: 0;
+        right: -280px;
+        /* 初期状態は画面外 */
+        width: 250px;
+        height: 100vh;
+        background-color: var(--surface-color);
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+        flex-direction: column;
+        padding: 0;
+        transition: right 0.3s ease-in-out;
+        z-index: 1200;
+        /* 最前面 */
+        overflow-y: auto;
+    }
+
+    .user-buttons.open {
+        right: 0;
+        /* 表示 */
+    }
+
+    /* メニューヘッダー */
+    .mobile-menu-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background-color: var(--primary-color);
+        color: white;
+        margin-bottom: 10px;
+    }
+
+    .mobile-menu-header h3 {
+        margin: 0;
+        font-size: 1.2em;
+        color: white;
+    }
+
+    .close-btn {
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 0;
+        cursor: pointer;
+        min-height: auto;
+    }
+
+    /* メニュー内のボタン調整 */
+    .user-buttons button {
+        margin: 5px 15px;
+        width: calc(100% - 30px);
+        text-align: left;
+        color: var(--text-color);
+        background-color: transparent !important;
+        /* 元の色を無効化 */
+        border: 1px solid var(--border-color);
+        color: #333;
+        border-radius: 6px;
+        box-shadow: none;
+        justify-content: flex-start;
+        /* 左寄せ */
+    }
+
+    .user-buttons button:hover {
+        background-color: #f5f5f5 !important;
+        transform: none;
+    }
+
+    /* アイコンの色調整が必要な場合 */
+    .user-buttons button .material-icons {
+        margin-right: 10px;
+        color: #666;
+    }
+
+    /* ログアウトボタンは下部に配置などの調整も可能だが、一旦リストに含める */
+
+    /* オーバーレイ背景 */
+    .mobile-menu-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s;
+        z-index: 1150;
+    }
+
+    .mobile-menu-overlay.open {
+        opacity: 1;
+        visibility: visible;
+    }
+}

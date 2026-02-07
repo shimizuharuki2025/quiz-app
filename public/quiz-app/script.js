@@ -610,7 +610,52 @@ window.onload = async function () {
         }
     }
 
-    const initialIconSpan = quizElements.muteBtn.querySelector('.button-icon');
+    // ========================================
+    // モバイルメニューの制御
+    // ========================================
+    const mobileMenuElements = {
+        toggleBtn: document.getElementById('mobile-menu-toggle'),
+        closeBtn: document.getElementById('mobile-menu-close'),
+        overlay: document.getElementById('mobile-menu-overlay'),
+        menuContainer: document.getElementById('user-menu-items')
+    };
+
+    function toggleMobileMenu(isOpen) {
+        if (isOpen) {
+            mobileMenuElements.menuContainer.classList.add('open');
+            mobileMenuElements.overlay.classList.add('open');
+        } else {
+            mobileMenuElements.menuContainer.classList.remove('open');
+            mobileMenuElements.overlay.classList.remove('open');
+        }
+    }
+
+    if (mobileMenuElements.toggleBtn) {
+        mobileMenuElements.toggleBtn.addEventListener('click', () => toggleMobileMenu(true));
+    }
+
+    if (mobileMenuElements.closeBtn) {
+        mobileMenuElements.closeBtn.addEventListener('click', () => toggleMobileMenu(false));
+    }
+
+    if (mobileMenuElements.overlay) {
+        mobileMenuElements.overlay.addEventListener('click', () => toggleMobileMenu(false));
+    }
+
+    // メニュー内のボタンをクリックしたら閉じる（画面遷移時など）
+    if (mobileMenuElements.menuContainer) {
+        mobileMenuElements.menuContainer.querySelectorAll('button').forEach(btn => {
+            // "close-btn" 以外かつ "mobile-menu-header" 内でないボタン
+            if (!btn.classList.contains('close-btn') && !btn.closest('.mobile-menu-header')) {
+                btn.addEventListener('click', () => {
+                    // 少し遅延させてクリックイベントが確実に発火するようにする
+                    setTimeout(() => toggleMobileMenu(false), 100);
+                });
+            }
+        });
+    }
+
+    initialIconSpan = quizElements.muteBtn.querySelector('.button-icon');
     if (initialIconSpan) {
         initialIconSpan.textContent = isSoundEnabled ? '🔊' : '🔇';
     }
