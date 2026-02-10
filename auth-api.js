@@ -4,6 +4,7 @@
 
 const bcrypt = require('bcryptjs');
 const db = require('./db'); // 新規作成したdb.jsを読み込み
+const fs = require('fs');
 
 // ミドルウェア：ログインチェック
 function requireAuth(req, res, next) {
@@ -321,9 +322,9 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
 
             await db.query(
                 `INSERT INTO quiz_results 
-                (id, user_id, category_id, category_name, score, total_questions, correct_answers, completed_at)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-                [recordId, userId, categoryId, categoryName, score, totalQuestions, correctAnswers || score, now]
+                (id, user_id, category_id, category_name, score, total_questions, correct_answers, incorrect_questions, completed_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+                [recordId, userId, categoryId, categoryName, score, totalQuestions, correctAnswers || score, JSON.stringify(req.body.incorrectQuestionIds || []), now]
             );
 
             console.log('学習記録を保存しました:', userId, categoryName);
@@ -426,6 +427,74 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
                 success: false,
                 message: 'サーバーエラーが発生しました。'
             });
+        }
+    });
+
+    // 弱点克服モード用：不正解の問題を取得
+    app.get('/api/history/weaknesses', requireAuth, async (req, res) => {
+        const userId = req.session.userId;
+
+        try {
+            // ユーザーの全履歴から不正解の問題IDを収集
+            const historyRes = await db.query(
+                'SELECT incorrect_questions FROM quiz_results WHERE user_id = $1',
+                [userId]
+            );
+
+            let weakQuestionIds = new Set();
+            historyRes.rows.forEach(row => {
+                if (row.incorrect_questions && Array.isArray(row.incorrect_questions)) {
+                    row.incorrect_questions.forEach(qid => weakQuestionIds.add(String(qid)));
+                } else if (typeof row.incorrect_questions === 'string') {
+                    try {
+                        const ids = JSON.parse(row.incorrect_questions);
+                        ids.forEach(qid => weakQuestionIds.add(String(qid)));
+                    } catch (e) { }
+                }
+            });
+
+            if (weakQuestionIds.size === 0) {
+                return res.json({ success: true, weakQuestions: [] });
+            }
+
+            // クイズデータを読み込み
+            if (!usersDataPath) {
+                // usersDataPathがundefinedの場合のフォールバック
+                // data/quiz-data.json を直接探す
+                var path = require('path');
+                var quizDataPath = path.join(__dirname, 'data', 'quiz-data.json');
+            } else {
+                var path = require('path');
+                var dataDir = path.dirname(usersDataPath);
+                var quizDataPath = path.join(dataDir, 'quiz-data.json');
+            }
+
+            if (!fs.existsSync(quizDataPath)) {
+                return res.json({ success: true, weakQuestions: [] });
+            }
+
+            const quizData = JSON.parse(fs.readFileSync(quizDataPath, 'utf8'));
+            let allQuestions = [];
+
+            if (quizData.categories) {
+                quizData.categories.forEach(cat => {
+                    if (cat.subcategories) {
+                        cat.subcategories.forEach(sub => {
+                            if (sub.questions) {
+                                allQuestions = allQuestions.concat(sub.questions);
+                            }
+                        });
+                    }
+                });
+            }
+
+            const weakQuestions = allQuestions.filter(q => weakQuestionIds.has(String(q.id)));
+
+            res.json({ success: true, weakQuestions });
+
+        } catch (error) {
+            console.error('弱点問題取得エラー:', error);
+            res.status(500).json({ success: false, message: 'サーバーエラーが発生しました。' });
         }
     });
 

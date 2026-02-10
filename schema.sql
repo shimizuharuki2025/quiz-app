@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS quiz_results (
     score INTEGER NOT NULL,
     total_questions INTEGER NOT NULL,
     correct_answers INTEGER NOT NULL,
+    incorrect_questions JSONB,
     completed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
