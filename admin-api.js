@@ -4,44 +4,8 @@
 
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+const db = require('./db'); // データベース接続
 
-// ヘルパー関数（auth-api.jsと同じものを再利用）
-function readUsers(usersDataPath) {
-    if (!fs.existsSync(usersDataPath)) {
-        return [];
-    }
-    try {
-        const data = fs.readFileSync(usersDataPath, 'utf8');
-        const parsed = JSON.parse(data);
-        return parsed.users || [];
-    } catch (err) {
-        console.error('ユーザーデータの読み込みエラー:', err);
-        return [];
-    }
-}
-
-function writeUsers(usersDataPath, users) {
-    try {
-        fs.writeFileSync(usersDataPath, JSON.stringify({ users }, null, 2), 'utf8');
-        return true;
-    } catch (err) {
-        console.error('ユーザーデータの保存エラー:', err);
-        return false;
-    }
-}
-
-function readLearningHistory(learningHistoryPath) {
-    if (!fs.existsSync(learningHistoryPath)) {
-        return {};
-    }
-    try {
-        const data = fs.readFileSync(learningHistoryPath, 'utf8');
-        return JSON.parse(data);
-    } catch (err) {
-        console.error('学習履歴の読み込みエラー:', err);
-        return {};
-    }
-}
 
 // ミドルウェア：管理者チェック
 function requireAdmin(req, res, next) {
@@ -64,10 +28,19 @@ function requireAdmin(req, res, next) {
 module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath) {
 
     // 全ユーザー一覧を取得（管理者専用）
-    app.get('/api/admin/users', requireAdmin, (req, res) => {
+    app.get('/api/admin/users', requireAdmin, async (req, res) => {
         try {
-            const users = readUsers(usersDataPath);
-            const history = readLearningHistory(learningHistoryPath);
+            // ユーザーと学習統計を結合して取得
+            const result = await db.query(`
+                SELECT u.*, 
+                       COUNT(q.id) as total_quizzes, 
+                       COALESCE(AVG(q.score), 0) as average_score, 
+                       COALESCE(MAX(q.score), 0) as best_score
+                FROM users u
+                LEFT JOIN quiz_results q ON u.id = q.user_id
+                GROUP BY u.id
+                ORDER BY u.created_at DESC
+            `);
 
             // 店舗マスタを読み込む
             let storeMaster = [];
@@ -79,27 +52,27 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
             }
 
             // 各ユーザーの学習統計を含める
-            const usersWithStats = users.map(user => {
-                const userHistory = history[user.id] || {
-                    totalQuizzes: 0,
-                    averageScore: 0,
-                    bestScore: 0
-                };
-
+            const usersWithStats = result.rows.map(user => {
                 // 店舗名を特定
-                const store = storeMaster.find(s => s.code === user.storeCode);
+                const store = storeMaster.find(s => s.code === user.store_code);
                 const storeName = store ? store.name : '店舗不明';
 
-                // パスワードハッシュを除外
-                const { passwordHash, ...userWithoutPassword } = user;
-
                 return {
-                    ...userWithoutPassword,
+                    id: user.id,
+                    employeeCode: user.employee_code,
+                    storeCode: user.store_code,
+                    name: user.name,
+                    isBanned: user.is_banned,
+                    banReason: user.ban_reason,
+                    isAdmin: user.is_admin,
+                    createdAt: user.created_at,
+                    lastLoginAt: user.last_login_at,
+                    memo: user.memo,
                     storeName,
                     statistics: {
-                        totalQuizzes: userHistory.totalQuizzes,
-                        averageScore: userHistory.averageScore,
-                        bestScore: userHistory.bestScore
+                        totalQuizzes: parseInt(user.total_quizzes),
+                        averageScore: Math.round(parseFloat(user.average_score)),
+                        bestScore: parseInt(user.best_score)
                     }
                 };
             });
@@ -146,23 +119,17 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
     });
 
     // 管理者権限を切り替えるAPI
-    app.put('/api/admin/users/:userId/admin-status', requireAdmin, (req, res) => {
+    app.put('/api/admin/users/:userId/admin-status', requireAdmin, async (req, res) => {
         const { userId } = req.params;
         const { isAdmin } = req.body;
 
         try {
-            const users = readUsers(usersDataPath);
-            const userIndex = users.findIndex(u => u.id === userId);
+            await db.query(
+                'UPDATE users SET is_admin = $1 WHERE id = $2',
+                [!!isAdmin, userId]
+            );
 
-            if (userIndex === -1) {
-                return res.status(404).json({ success: false, message: 'ユーザーが見つかりません。' });
-            }
-
-            // 権限を更新
-            users[userIndex].isAdmin = !!isAdmin;
-            writeUsers(usersDataPath, users);
-
-            console.log(`管理者権限を更新しました: ${users[userIndex].employeeCode} -> ${isAdmin}`);
+            console.log(`管理者権限を更新しました: ${userId} -> ${isAdmin}`);
             res.json({ success: true, message: '管理者権限を更新しました。' });
         } catch (error) {
             console.error('管理者権限更新エラー:', error);
@@ -171,14 +138,14 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
     });
 
     // 特定ユーザーの詳細情報を取得（管理者専用）
-    app.get('/api/admin/users/:userId', requireAdmin, (req, res) => {
+    app.get('/api/admin/users/:userId', requireAdmin, async (req, res) => {
         const { userId } = req.params;
 
         try {
-            const users = readUsers(usersDataPath);
-            const history = readLearningHistory(learningHistoryPath);
+            // ユーザー情報取得
+            const userRes = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
+            const user = userRes.rows[0];
 
-            const user = users.find(u => u.id === userId);
             if (!user) {
                 return res.status(404).json({
                     success: false,
@@ -186,22 +153,31 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
                 });
             }
 
-            const userHistory = history[userId] || {
-                totalQuizzes: 0,
-                totalScore: 0,
-                averageScore: 0,
-                bestScore: 0,
-                quizHistory: []
-            };
-
-            // パスワードハッシュを除外
-            const { passwordHash, ...userWithoutPassword } = user;
+            // 履歴取得
+            const historyRes = await db.query(`
+                SELECT id, category_id as "categoryId", category_name as "categoryName",
+                       score, total_questions as "totalQuestions", correct_answers as "correctAnswers",
+                       completed_at as "completedAt"
+                FROM quiz_results
+                WHERE user_id = $1
+                ORDER BY completed_at DESC
+            `, [userId]);
 
             res.json({
                 success: true,
                 user: {
-                    ...userWithoutPassword,
-                    history: userHistory
+                    id: user.id,
+                    employeeCode: user.employee_code,
+                    storeCode: user.store_code,
+                    name: user.name,
+                    isBanned: user.is_banned,
+                    isAdmin: user.is_admin,
+                    createdAt: user.created_at,
+                    lastLoginAt: user.last_login_at,
+                    memo: user.memo,
+                    history: {
+                        quizHistory: historyRes.rows
+                    }
                 }
             });
 
@@ -215,25 +191,19 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
     });
 
     // ユーザー情報を更新（管理者専用）
-    app.put('/api/admin/users/:userId', requireAdmin, (req, res) => {
+    app.put('/api/admin/users/:userId', requireAdmin, async (req, res) => {
         const { userId } = req.params;
         const { employeeCode, storeCode, name } = req.body;
 
         try {
-            const users = readUsers(usersDataPath);
-            const userIndex = users.findIndex(u => u.id === userId);
-
-            if (userIndex === -1) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'ユーザーが見つかりません。'
-                });
-            }
-
             // 従業員コードの重複チェック（変更する場合）
-            if (employeeCode && employeeCode !== users[userIndex].employeeCode) {
-                const duplicate = users.find(u => u.employeeCode === employeeCode && u.id !== userId);
-                if (duplicate) {
+            if (employeeCode) {
+                const checkRes = await db.query(
+                    'SELECT id FROM users WHERE employee_code = $1 AND id != $2',
+                    [employeeCode, userId]
+                );
+
+                if (checkRes.rows.length > 0) {
                     return res.status(400).json({
                         success: false,
                         message: 'この従業員コードは既に使用されています。'
@@ -258,34 +228,43 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
             }
 
             // ユーザー情報を更新
-            if (employeeCode) users[userIndex].employeeCode = employeeCode;
-            if (storeCode) users[userIndex].storeCode = storeCode;
-            if (name) users[userIndex].name = name;
-            if (req.body.memo !== undefined) users[userIndex].memo = req.body.memo;
+            let updateFields = [];
+            let values = [];
+            let idx = 1;
 
-            // パスワードの変更（新しいパスワードが含まれている場合）
+            if (employeeCode) { updateFields.push(`employee_code = $${idx++}`); values.push(employeeCode); }
+            if (storeCode) { updateFields.push(`store_code = $${idx++}`); values.push(storeCode); }
+            if (name) { updateFields.push(`name = $${idx++}`); values.push(name); }
+            if (req.body.memo !== undefined) { updateFields.push(`memo = $${idx++}`); values.push(req.body.memo); }
+
             if (req.body.password && req.body.password.length > 0) {
-                const salt = bcrypt.genSaltSync(10);
-                users[userIndex].passwordHash = bcrypt.hashSync(req.body.password, salt);
-                console.log('ユーザーのパスワードを更新しました:', userId);
+                const passwordHash = await bcrypt.hash(req.body.password, 10);
+                updateFields.push(`password_hash = $${idx++}`);
+                values.push(passwordHash);
             }
 
-            if (!writeUsers(usersDataPath, users)) {
-                return res.status(500).json({
-                    success: false,
-                    message: 'ユーザー情報の更新に失敗しました。'
-                });
+            if (updateFields.length > 0) {
+                values.push(userId);
+                await db.query(
+                    `UPDATE users SET ${updateFields.join(', ')} WHERE id = $${idx}`,
+                    values
+                );
             }
+
+            // 更新後のデータを取得
+            const updatedUserRes = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
+            const updatedUser = updatedUserRes.rows[0];
 
             console.log('ユーザー情報を更新しました:', userId);
-
-            // パスワードハッシュを除外してレスポンス
-            const { passwordHash, ...userResponse } = users[userIndex];
 
             res.json({
                 success: true,
                 message: 'ユーザー情報を更新しました。',
-                user: userResponse
+                user: {
+                    id: updatedUser.id,
+                    employeeCode: updatedUser.employee_code,
+                    name: updatedUser.name
+                }
             });
 
         } catch (error) {
@@ -298,36 +277,12 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
     });
 
     // ユーザーを削除（管理者専用）
-    app.delete('/api/admin/users/:userId', requireAdmin, (req, res) => {
+    app.delete('/api/admin/users/:userId', requireAdmin, async (req, res) => {
         const { userId } = req.params;
 
         try {
-            let users = readUsers(usersDataPath);
-            const initialLength = users.length;
-
-            users = users.filter(u => u.id !== userId);
-
-            if (users.length === initialLength) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'ユーザーが見つかりません。'
-                });
-            }
-
-            if (!writeUsers(usersDataPath, users)) {
-                return res.status(500).json({
-                    success: false,
-                    message: 'ユーザーの削除に失敗しました。'
-                });
-            }
-
-            // 学習履歴も削除（オプション）
-            const history = readLearningHistory(learningHistoryPath);
-            if (history[userId]) {
-                delete history[userId];
-                const fs = require('fs');
-                fs.writeFileSync(learningHistoryPath, JSON.stringify(history, null, 2), 'utf8');
-            }
+            // カスケード削除が設定されている前提、または明示的に削除
+            await db.query('DELETE FROM users WHERE id = $1', [userId]);
 
             console.log('ユーザーを削除しました:', userId);
 
@@ -346,37 +301,21 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
     });
 
     // ユーザーをバン（管理者専用）
-    app.put('/api/admin/users/:userId/ban', requireAdmin, (req, res) => {
+    app.put('/api/admin/users/:userId/ban', requireAdmin, async (req, res) => {
         const { userId } = req.params;
         const { reason } = req.body;
 
         try {
-            const users = readUsers(usersDataPath);
-            const userIndex = users.findIndex(u => u.id === userId);
-
-            if (userIndex === -1) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'ユーザーが見つかりません。'
-                });
-            }
-
-            users[userIndex].isBanned = true;
-            users[userIndex].banReason = reason || '管理者により停止されました。';
-
-            if (!writeUsers(usersDataPath, users)) {
-                return res.status(500).json({
-                    success: false,
-                    message: 'ユーザーのバンに失敗しました。'
-                });
-            }
+            await db.query(
+                'UPDATE users SET is_banned = true, ban_reason = $1 WHERE id = $2',
+                [reason || '管理者により停止されました。', userId]
+            );
 
             console.log('ユーザーをバンしました:', userId);
 
             res.json({
                 success: true,
-                message: 'ユーザーをバンしました。',
-                user: users[userIndex]
+                message: 'ユーザーをバンしました。'
             });
 
         } catch (error) {
@@ -389,35 +328,17 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
     });
 
     // ユーザーのバンを解除（管理者専用）
-    app.put('/api/admin/users/:userId/unban', requireAdmin, (req, res) => {
+    app.put('/api/admin/users/:userId/unban', requireAdmin, async (req, res) => {
         const { userId } = req.params;
 
         try {
-            const users = readUsers(usersDataPath);
-            const userIndex = users.findIndex(u => u.id === userId);
-
-            if (userIndex === -1) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'ユーザーが見つかりません。'
-                });
-            }
-
-            users[userIndex].isBanned = false;
-
-            if (!writeUsers(usersDataPath, users)) {
-                return res.status(500).json({
-                    success: false,
-                    message: 'ユーザーのバン解除に失敗しました。'
-                });
-            }
+            await db.query('UPDATE users SET is_banned = false, ban_reason = null WHERE id = $1', [userId]);
 
             console.log('ユーザーのバンを解除しました:', userId);
 
             res.json({
                 success: true,
-                message: 'ユーザーのバンを解除しました。',
-                user: users[userIndex]
+                message: 'ユーザーのバンを解除しました。'
             });
 
         } catch (error) {
@@ -430,11 +351,8 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
     });
 
     // 全体の学習統計を取得（管理者専用）
-    app.get('/api/admin/stats', requireAdmin, (req, res) => {
+    app.get('/api/admin/stats', requireAdmin, async (req, res) => {
         try {
-            const history = readLearningHistory(learningHistoryPath);
-            const users = readUsers(usersDataPath);
-
             // 店舗マスタを読み込んでマッピングを作成
             let storeMap = {};
             try {
@@ -450,117 +368,94 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
                 console.error('店舗マスタ読込エラー:', e);
             }
 
+            // DBから集計
+            const userCountRes = await db.query('SELECT COUNT(*) FROM users');
+            const quizCountRes = await db.query('SELECT COUNT(*) FROM quiz_results');
+            const avgScoreRes = await db.query('SELECT AVG(score) FROM quiz_results');
+            const totalCorrectRes = await db.query('SELECT SUM(correct_answers) FROM quiz_results');
+            const totalQuestionsRes = await db.query('SELECT SUM(total_questions) FROM quiz_results');
+
+            // アクティブユーザー（履歴があるユーザー）
+            const activeUsersRes = await db.query('SELECT COUNT(DISTINCT user_id) FROM quiz_results');
+
             const stats = {
                 summary: {
-                    totalUsers: users.length,
-                    activeUsers: 0,
-                    totalPlayCount: 0,
-                    averageScore: 0,
-                    totalCorrectAnswers: 0,
-                    totalQuestions: 0
+                    totalUsers: parseInt(userCountRes.rows[0].count),
+                    activeUsers: parseInt(activeUsersRes.rows[0].count),
+                    totalPlayCount: parseInt(quizCountRes.rows[0].count),
+                    averageScore: Math.round(parseFloat(avgScoreRes.rows[0].avg || 0)),
+                    totalCorrectAnswers: parseInt(totalCorrectRes.rows[0].sum || 0),
+                    totalQuestions: parseInt(totalQuestionsRes.rows[0].sum || 0)
                 },
                 categoryStats: {}, // { categoryId: { name, playCount, totalScore, averageScore } }
                 storeStats: {},    // { storeCode: { name, activeUsers: Set, playCount, totalScore, averageScore } }
                 recentActivity: []
             };
 
-            let allHistoryItems = [];
-            let userIdsWithHistory = new Set();
+            // カテゴリ別統計
+            const catStatsRes = await db.query(`
+                SELECT category_id, category_name, 
+                       COUNT(*) as play_count, 
+                       SUM(score) as total_score, 
+                       SUM(correct_answers) as total_correct, 
+                       SUM(total_questions) as total_questions
+                FROM quiz_results
+                GROUP BY category_id, category_name
+            `);
 
-            Object.keys(history).forEach(userId => {
-                const userStats = history[userId];
-                if (userStats.quizHistory && userStats.quizHistory.length > 0) {
-                    userIdsWithHistory.add(userId);
-                    stats.summary.totalPlayCount += userStats.quizHistory.length;
-
-                    // ユーザー情報を取得
-                    const user = users.find(u => u.id === userId);
-                    const storeCode = user ? user.storeCode : 'unknown';
-                    // 店舗マスタから名前を解決、なければ「店舗不明」
-                    const storeName = storeMap[storeCode] || '店舗不明';
-
-                    // 店舗統計の初期化
-                    if (!stats.storeStats[storeCode]) {
-                        stats.storeStats[storeCode] = {
-                            name: storeName,
-                            activeUsers: [], // SetはJSON化できないので配列変換用に一時保持、あるいはロジック内で処理
-                            activeUserIds: new Set(),
-                            playCount: 0,
-                            totalScore: 0,
-                            averageScore: 0
-                        };
-                    }
-                    stats.storeStats[storeCode].activeUserIds.add(userId);
-
-                    userStats.quizHistory.forEach(item => {
-                        allHistoryItems.push({
-                            ...item,
-                            userId,
-                            userName: user ? user.name : '不明なユーザー',
-                            employeeCode: user ? user.employeeCode : '',
-                            storeName: storeName
-                        });
-
-                        // カテゴリ別統計
-                        if (!stats.categoryStats[item.categoryId]) {
-                            stats.categoryStats[item.categoryId] = {
-                                name: item.categoryName,
-                                playCount: 0,
-                                totalScore: 0,
-                                totalCorrect: 0,
-                                totalQuestions: 0
-                            };
-                        }
-                        const cat = stats.categoryStats[item.categoryId];
-                        cat.playCount++;
-                        cat.totalScore += item.score;
-                        cat.totalCorrect += item.correctAnswers;
-                        cat.totalQuestions += item.totalQuestions;
-
-                        // 店舗別統計（プレイ回数・スコア）
-                        const st = stats.storeStats[storeCode];
-                        st.playCount++;
-                        st.totalScore += item.score;
-                    });
-                }
+            catStatsRes.rows.forEach(row => {
+                stats.categoryStats[row.category_id] = {
+                    name: row.category_name,
+                    playCount: parseInt(row.play_count),
+                    totalScore: parseInt(row.total_score),
+                    totalCorrect: parseInt(row.total_correct),
+                    totalQuestions: parseInt(row.total_questions),
+                    averageScore: Math.round(parseInt(row.total_score) / parseInt(row.play_count))
+                };
             });
 
-            stats.summary.activeUsers = userIdsWithHistory.size;
+            // 店舗別統計
+            const storeStatsRes = await db.query(`
+                SELECT u.store_code, 
+                       COUNT(q.id) as play_count, 
+                       SUM(q.score) as total_score, 
+                       COUNT(DISTINCT q.user_id) as active_users
+                FROM quiz_results q
+                JOIN users u ON q.user_id = u.id
+                GROUP BY u.store_code
+            `);
 
-            if (stats.summary.totalPlayCount > 0) {
-                let sumScore = 0;
-                let sumCorrect = 0;
-                let sumQuestions = 0;
-
-                allHistoryItems.forEach(item => {
-                    sumScore += item.score;
-                    sumCorrect += item.correctAnswers;
-                    sumQuestions += item.totalQuestions;
-                });
-
-                stats.summary.averageScore = Math.round(sumScore / stats.summary.totalPlayCount);
-                stats.summary.totalCorrectAnswers = sumCorrect;
-                stats.summary.totalQuestions = sumQuestions;
-            }
-
-            // カテゴリ平均点の計算
-            Object.keys(stats.categoryStats).forEach(id => {
-                const cat = stats.categoryStats[id];
-                cat.averageScore = Math.round(cat.totalScore / cat.playCount);
-            });
-
-            // 店舗統計の仕上げ（Setのサイズ取得と平均点計算）
-            Object.keys(stats.storeStats).forEach(code => {
-                const st = stats.storeStats[code];
-                st.activeUsersCount = st.activeUserIds.size;
-                delete st.activeUserIds; // JSONレスポンスからSetを削除
-                st.averageScore = st.playCount > 0 ? Math.round(st.totalScore / st.playCount) : 0;
+            storeStatsRes.rows.forEach(row => {
+                const storeName = storeMap[row.store_code] || '店舗不明';
+                stats.storeStats[row.store_code] = {
+                    name: storeName,
+                    activeUsersCount: parseInt(row.active_users),
+                    playCount: parseInt(row.play_count),
+                    totalScore: parseInt(row.total_score),
+                    averageScore: Math.round(parseInt(row.total_score) / parseInt(row.play_count))
+                };
             });
 
             // 最近の活動（最新20件）
-            stats.recentActivity = allHistoryItems
-                .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
-                .slice(0, 20);
+            const recentRes = await db.query(`
+                SELECT q.*, u.name as user_name, u.employee_code, u.store_code
+                FROM quiz_results q
+                LEFT JOIN users u ON q.user_id = u.id
+                ORDER BY q.completed_at DESC
+                LIMIT 20
+            `);
+
+            stats.recentActivity = recentRes.rows.map(row => ({
+                id: row.id,
+                userId: row.user_id,
+                userName: row.user_name || '不明なユーザー',
+                employeeCode: row.employee_code,
+                storeName: storeMap[row.store_code] || '店舗不明',
+                categoryId: row.category_id,
+                categoryName: row.category_name,
+                score: row.score,
+                completedAt: row.completed_at
+            }));
 
             res.json({
                 success: true,

@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const webpush = require('web-push');
+const db = require('./db'); // データベース接続
 
 const app = express();
 const port = process.env.PORT || 10000;
@@ -84,18 +85,6 @@ if (fs.existsSync(vapidKeysPath)) {
 }
 // --- ▲▲▲【ここまで】▲▲▲ ---
 
-// ヘルパー関数
-function readUsers(usersDataPath) {
-    if (!fs.existsSync(usersDataPath)) return [];
-    try {
-        const data = fs.readFileSync(usersDataPath, 'utf8');
-        const parsed = JSON.parse(data);
-        return parsed.users || [];
-    } catch (err) {
-        console.error('ユーザーデータの読み込みエラー:', err);
-        return [];
-    }
-}
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadPath),
@@ -219,20 +208,20 @@ app.post('/upload', upload.single('image'), (req, res) => {
     res.json({ success: true, imageUrl: `/uploads/${req.file.filename}` });
 });
 
-app.post('/api/v1/auth/admin', (req, res) => {
+app.post('/api/v1/auth/admin', async (req, res) => {
     const { employeeCode, password } = req.body;
 
     // 1. 個別の従業員アカウントでの認証を試行
     if (employeeCode && password) {
-        const users = readUsers(usersDataPath);
-        const user = users.find(u => u.employeeCode === employeeCode);
+        const result = await db.query('SELECT * FROM users WHERE employee_code = $1', [employeeCode]);
+        const user = result.rows[0];
 
-        if (user && !user.isBanned && user.isAdmin) {
-            const isPasswordValid = bcrypt.compareSync(password, user.passwordHash);
+        if (user && !user.is_banned && user.is_admin) {
+            const isPasswordValid = await bcrypt.compare(password, user.password_hash);
             if (isPasswordValid) {
                 if (req.session) {
                     req.session.userId = user.id;
-                    req.session.employeeCode = user.employeeCode;
+                    req.session.employeeCode = user.employee_code;
                     req.session.name = user.name;
                     req.session.isAdmin = true;
                 }
