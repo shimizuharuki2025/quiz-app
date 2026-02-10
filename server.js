@@ -746,11 +746,14 @@ app.get('/api/backup', (req, res) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`========================================`);
-    console.log(`サーバーがポート ${port} で起動しました。`);
-    console.log(`データ保存先: ${quizDataPath}`);
-    console.log(`画像保存先: ${uploadPath}`);
-    console.log(`Disk機能: ${process.env.RENDER_DISK_MOUNT_PATH ? '有効 (/data)' : '無効 (ローカル)'}`);
-    console.log(`========================================`);
-});
+// マイグレーション実行（DB初期化・更新）
+const runMigrations = require('./migrate');
+runMigrations().then(() => {
+    app.listen(port, () => {
+        console.log(`========================================`);
+        console.log(`サーバーがポート ${port} で起動しました。`);
+        console.log(`データ保存先: ${quizDataPath}`);
+        console.log(`画像保存先: ${uploadPath}`);
+        console.log(`Disk機能: ${process.env.RENDER_DISK_MOUNT_PATH ? '有効 (/data)' : '無効 (ローカル)'}`);
+        console.log(`========================================`);
+    });
