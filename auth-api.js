@@ -376,7 +376,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
     // 学習記録を保存
     app.post('/api/learning/record', requireAuth, (req, res) => {
         const userId = req.session.userId;
-        const { categoryId, categoryName, score, totalQuestions, correctAnswers } = req.body;
+        const { categoryId, categoryName, score, totalQuestions, correctAnswers, incorrectQuestionIds } = req.body;
 
         // バリデーション
         if (!categoryId || !categoryName || score === undefined || !totalQuestions) {
@@ -408,7 +408,8 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
                 score,
                 totalQuestions,
                 correctAnswers: correctAnswers || score,
-                completedAt: new Date().toISOString()
+                completedAt: new Date().toISOString(),
+                incorrectQuestionIds: incorrectQuestionIds || [] // 不正解の問題IDリストを保存
             };
 
             history[userId].quizHistory.push(newRecord);
@@ -527,4 +528,55 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
     });
 
     console.log('✓ ユーザー認証APIと学習履歴APIを初期化しました');
+    // ========================================
+    // 弱点克服モード用API
+    // ========================================
+    app.get('/api/history/weaknesses', requireAuth, (req, res) => {
+        const userId = req.session.userId;
+
+        try {
+            const history = readLearningHistory(learningHistoryPath);
+            const userHistory = history[userId];
+
+            if (!userHistory || !userHistory.quizHistory) {
+                return res.json({ success: true, weakQuestions: [] });
+            }
+
+            // 全履歴から不正解の問題IDを収集（重複排除）
+            const weakQuestionIds = new Set();
+            userHistory.quizHistory.forEach(record => {
+                if (record.incorrectQuestionIds && Array.isArray(record.incorrectQuestionIds)) {
+                    record.incorrectQuestionIds.forEach(id => weakQuestionIds.add(id));
+                }
+            });
+
+            if (weakQuestionIds.size === 0) {
+                return res.json({ success: true, weakQuestions: [] });
+            }
+
+            // 問題データを取得して、IDに該当するものを抽出
+            const quizData = JSON.parse(fs.readFileSync(quizDataPath, 'utf8'));
+            const allQuestions = [];
+
+            // 全カテゴリ・全サブカテゴリの問題をフラットな配列にする
+            quizData.mainCategories.forEach(main => {
+                if (main.subCategories) {
+                    main.subCategories.forEach(sub => {
+                        if (sub.questions) {
+                            allQuestions.push(...sub.questions);
+                        }
+                    });
+                }
+            });
+
+            // IDが一致する問題を抽出
+            const weakQuestions = allQuestions.filter(q => weakQuestionIds.has(q.id));
+
+            res.json({ success: true, weakQuestions });
+
+        } catch (error) {
+            console.error('弱点問題の取得エラー:', error);
+            res.status(500).json({ success: false, message: 'サーバーエラーが発生しました。' });
+        }
+    });
 };

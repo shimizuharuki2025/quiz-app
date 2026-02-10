@@ -160,7 +160,10 @@ async function recordLearning(quizData) {
                 'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify(quizData)
+            body: JSON.stringify({
+                ...quizData,
+                incorrectQuestionIds: window.incorrectQuestions ? window.incorrectQuestions.map(q => q.id) : []
+            })
         });
 
         const data = await response.json();

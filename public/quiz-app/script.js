@@ -701,5 +701,159 @@ window.onload = async function () {
         initialIconSpan.textContent = isSoundEnabled ? '🔊' : '🔇';
     }
     quizElements.muteBtn.classList.toggle('muted', !isSoundEnabled);
+    // ========================================
+    // 特別モード（弱点克服・デイリー）のロジック
+    // ========================================
+    const specialModeElements = {
+        weaknessBtn: document.getElementById('weakness-mode-btn'),
+        dailyBtn: document.getElementById('daily-quiz-btn')
+    };
+
+    if (specialModeElements.weaknessBtn) {
+        specialModeElements.weaknessBtn.addEventListener('click', startWeaknessQuiz);
+    }
+
+    if (specialModeElements.dailyBtn) {
+        specialModeElements.dailyBtn.addEventListener('click', startDailyQuiz);
+    }
+
+    async function startWeaknessQuiz() {
+        if (!currentUser && !isGuestMode) {
+            alert('この機能を利用するにはログインが必要です。');
+            return;
+        }
+
+        if (isGuestMode) {
+            alert('ゲストモードでは学習履歴が保存されないため、弱点克服モードは利用できません。');
+            return;
+        }
+
+        try {
+            // ローディング表示（簡易的）
+            specialModeElements.weaknessBtn.disabled = true;
+            specialModeElements.weaknessBtn.style.opacity = '0.7';
+
+            const response = await fetch('/api/history/weaknesses', { credentials: 'include' });
+            const data = await response.json();
+
+            specialModeElements.weaknessBtn.disabled = false;
+            specialModeElements.weaknessBtn.style.opacity = '1';
+
+            if (!data.success) {
+                throw new Error(data.message || 'データ取得エラー');
+            }
+
+            if (!data.weakQuestions || data.weakQuestions.length === 0) {
+                alert('現在、克服すべき弱点（間違えた問題）はありません！\n素晴らしいです！');
+                return;
+            }
+
+            // クイズ開始の準備
+            currentQuestions = shuffleArray(data.weakQuestions); // ランダムに出題
+            // データ構造の整合性を保つ
+            currentQuestions.forEach(q => {
+                if (!q.answers && q.choices) q.answers = q.choices; // 安全策
+            });
+
+            currentQuestionIndex = 0;
+            score = 0;
+            incorrectQuestions = [];
+            selectedSubCategoryId = 'weakness_mode'; // 特殊ID
+
+            // 画面表示更新
+            showScreen('quiz');
+            quizElements.questionNumber.textContent = `弱点克服 - 第1問`;
+
+            // 通常のdisplayQuestionを呼ぶが、カウント表示などはdisplayQuestion内で処理される
+            displayQuestion();
+
+        } catch (error) {
+            console.error('弱点克服モードエラー:', error);
+            alert('データの取得に失敗しました。');
+            specialModeElements.weaknessBtn.disabled = false;
+            specialModeElements.weaknessBtn.style.opacity = '1';
+        }
+    }
+
+    function startDailyQuiz() {
+        // 1日1回チェック
+        const today = new Date().toLocaleDateString();
+        const lastPlayed = localStorage.getItem('daily_quiz_last_played');
+
+        if (lastPlayed === today) {
+            if (!confirm('本日のデイリークイズは既にプレイ済みです。\n練習としてもう一度プレイしますか？（記録は更新されません）')) {
+                return;
+            }
+        }
+
+        // 全問題からランダムに5問抽出
+        const allQuestions = [];
+        if (!quizData || !quizData.mainCategories) {
+            alert('クイズデータが読み込まれていません。');
+            return;
+        }
+
+        quizData.mainCategories.forEach(main => {
+            if (main.subCategories) {
+                main.subCategories.forEach(sub => {
+                    // ゲストの場合はゲスト可のカテゴリのみ
+                    if (isGuestMode && !sub.isGuestAllowed) return;
+
+                    if (sub.questions) {
+                        allQuestions.push(...sub.questions);
+                    }
+                });
+            }
+        });
+
+        if (allQuestions.length < 5) {
+            alert('問題数が不足しているため、デイリークイズを開始できません。');
+            return;
+        }
+
+        // ランダムに5問
+        const dailyQuestions = shuffleArray(allQuestions).slice(0, 5);
+
+        currentQuestions = dailyQuestions;
+        currentQuestionIndex = 0;
+        score = 0;
+        incorrectQuestions = [];
+        selectedSubCategoryId = 'daily_quiz'; // 特殊ID
+
+        showScreen('quiz');
+        displayQuestion();
+
+        // 完了時に日付を保存するロジックは showResult に追加するか、ここでフラグを立てる
+        // 簡易的にここで保存してしまう（プレイ開始＝プレイ済みとする場合）
+        // あるいは showResult で selectedSubCategoryId === 'daily_quiz' の時に保存する
+        // ここではフラグを立てる
+        window.isDailyQuiz = true;
+    }
+
+    // showResult関数の拡張が必要だが、既存の関数を書き換えるのはリスクがある。
+    // そのため、showResultの最後で日付保存を行うためのフックを既存コードに入れるか、
+    // ここで既存のshowResultをラップする。
+
+    const originalShowResult = showResult;
+    showResult = function () {
+        if (selectedSubCategoryId === 'daily_quiz' || window.isDailyQuiz) {
+            const today = new Date().toLocaleDateString();
+            localStorage.setItem('daily_quiz_last_played', today);
+            window.isDailyQuiz = false;
+        }
+        originalShowResult();
+
+        // 特殊モードの場合はタイトル等を調整
+        if (selectedSubCategoryId === 'weakness_mode') {
+            resultElements.scoreText.textContent = `弱点克服スコア: ${Math.round((score / currentQuestions.length) * 100)}点`;
+            // ハイスコア保存はしない（または特殊キーで保存）
+            resultElements.highScoreText.style.display = 'none';
+        } else if (selectedSubCategoryId === 'daily_quiz') {
+            resultElements.highScoreText.style.display = 'none';
+        } else {
+            resultElements.highScoreText.style.display = 'block';
+        }
+    };
+
     loadQuizData();
 };
