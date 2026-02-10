@@ -238,7 +238,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
     });
 
     // 現在のユーザー情報取得
-    app.get('/api/auth/me', (req, res) => {
+    app.get('/api/auth/me', async (req, res) => {
         const sessionID = req.sessionID;
         const userId = req.session ? req.session.userId : 'none';
         const isAdmin = req.session ? req.session.isAdmin : false;
@@ -302,7 +302,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
     // ========================================
 
     // 学習記録を保存
-    app.post('/api/learning/record', requireAuth, (req, res) => {
+    app.post('/api/learning/record', requireAuth, async (req, res) => {
         const userId = req.session.userId;
         const { categoryId, categoryName, score, totalQuestions, correctAnswers } = req.body;
 
@@ -344,7 +344,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
     });
 
     // 学習履歴を取得
-    app.get('/api/learning/history/:userId', requireAuth, (req, res) => {
+    app.get('/api/learning/history/:userId', requireAuth, async (req, res) => {
         const { userId } = req.params;
 
         // 自分の履歴のみ取得可能（管理者は後で実装）
@@ -386,7 +386,7 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
     });
 
     // 統計情報を取得
-    app.get('/api/learning/statistics/:userId', requireAuth, (req, res) => {
+    app.get('/api/learning/statistics/:userId', requireAuth, async (req, res) => {
         const { userId } = req.params;
 
         // 自分の統計のみ取得可能（管理者は後で実装）
