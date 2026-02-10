@@ -499,6 +499,80 @@ button:active {
 /* クイズ画面内の回答選択肢グループ */
 #answer-buttons {
     margin: 20px 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+/* 奇数個の選択肢（3択など）の場合のスタイル */
+#answer-buttons.odd-grid {
+    grid-template-columns: 1fr;
+    /* 1列にする */
+}
+
+/* 〇✕問題の専用グリッド */
+#answer-buttons.true-false-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    height: auto;
+    min-height: 200px;
+}
+
+#answer-buttons button {
+    background-color: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 1rem;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+    width: 100%;
+    /* 幅いっぱい */
+}
+
+/* 〇✕ボタンの専用スタイル */
+#answer-buttons.true-false-grid button {
+    height: 100%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-width: 3px;
+    min-height: 150px;
+}
+
+#answer-buttons.true-false-grid button.btn-true {
+    border-color: #ff5252;
+    color: #ff5252;
+}
+
+#answer-buttons.true-false-grid button.btn-true .tf-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+}
+
+#answer-buttons.true-false-grid button.btn-false {
+    border-color: #448aff;
+    color: #448aff;
+}
+
+#answer-buttons.true-false-grid button.btn-false .tf-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+}
+
+/* ダークモード対応 */
+body.dark-mode #answer-buttons.true-false-grid button.btn-true {
+    background-color: rgba(255, 82, 82, 0.1);
+}
+
+body.dark-mode #answer-buttons.true-false-grid button.btn-false {
+    background-color: rgba(68, 138, 255, 0.1);
 }
 
 /* =============================================== */

@@ -149,26 +149,63 @@ function renderQuestionList() {
         const isMultipleChoiceInput = qElement.querySelector('.is-multiple-choice-input');
         const answersGroup = qElement.querySelector('.answers-group');
         const fillInBlankInput = qElement.querySelector('.fill-in-the-blank-answers');
+        const addAnswerBtn = qElement.querySelector('.add-answer-btn');
 
         const questionType = question.questionType || (question.isMultipleChoice ? 'multiple' : 'single');
         questionTypeSelect.value = questionType;
 
         const setupUIForQuestionType = (type) => {
             const isFillIn = type === 'fill-in-the-blank';
+            const isTrueFalse = type === 'true-false';
+
             choiceContainer.classList.toggle('hidden', isFillIn);
             fillInBlankContainer.classList.toggle('hidden', !isFillIn);
-            if (!isFillIn) {
+
+            // 〇✕と穴埋めは「選択肢を追加」ボタンを非表示
+            if (addAnswerBtn) {
+                addAnswerBtn.style.display = (isFillIn || isTrueFalse) ? 'none' : 'inline-block';
+            }
+
+            if (isTrueFalse) {
+                // 〇✕問題の場合、選択肢を強制的にセット（まだセットされていない場合）
+                // 既にセットされている場合も、念のため確認（既存の選択肢が違う場合など）
+                const isCorrectSet = (question.answers || []).length === 2 &&
+                    ['〇', '✕'].includes(question.answers[0].text);
+
+                if (!isCorrectSet) {
+                    question.answers = [
+                        { text: '〇', correct: true },
+                        { text: '✕', correct: false }
+                    ];
+                }
+                isMultipleChoiceInput.disabled = true;
+                isMultipleChoiceInput.checked = false; // 〇✕は常に単一選択
+                renderChoiceAnswers();
+            } else if (!isFillIn) {
+                isMultipleChoiceInput.disabled = false;
                 isMultipleChoiceInput.checked = (type === 'multiple');
+                // 選択肢が空ならデフォルト4つ作成
+                if (!question.answers || question.answers.length === 0) {
+                    question.answers = [
+                        { text: "選択肢1 (正解)", correct: true },
+                        { text: "選択肢2", correct: false },
+                        { text: "選択肢3", correct: false },
+                        { text: "選択肢4", correct: false }
+                    ];
+                }
                 renderChoiceAnswers();
             }
         };
 
         const renderChoiceAnswers = () => {
             const answerInputType = isMultipleChoiceInput.checked ? 'checkbox' : 'radio';
+            const isTrueFalse = questionTypeSelect.value === 'true-false';
+
             answersGroup.innerHTML = (question.answers || []).map((ans, ansIndex) =>
-                `<div class="answer-item">
+                `<div class="answer-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                     <input type="${answerInputType}" name="correct-answer-${index}" class="is-correct-input" ${ans.correct ? 'checked' : ''} data-ans-index="${ansIndex}">
-                    <input type="text" class="answer-text" value="${ans.text}" data-ans-index="${ansIndex}">
+                    <input type="text" class="answer-text" value="${ans.text}" data-ans-index="${ansIndex}" style="flex: 1; padding: 5px;" ${isTrueFalse ? 'readonly style="background-color: #f0f0f0; border: 1px solid #ccc; flex: 1; padding: 5px;"' : ''}>
+                    ${!isTrueFalse ? `<button type="button" class="delete-answer-btn btn-danger" data-ans-index="${ansIndex}" style="padding: 2px 6px; font-size: 12px; margin-left: 5px;" title="削除">×</button>` : ''}
                 </div>`
             ).join('');
         };
@@ -185,10 +222,69 @@ function renderQuestionList() {
         });
 
         qElement.querySelector('.form-group-checkbox label').addEventListener('click', (e) => {
+            if (questionTypeSelect.value === 'true-false') return; // 〇✕は変更不可
             e.preventDefault();
             isMultipleChoiceInput.checked = !isMultipleChoiceInput.checked;
             isMultipleChoiceInput.dispatchEvent(new Event('change'));
         });
+
+        // 選択肢を追加ボタン
+        if (addAnswerBtn) {
+            addAnswerBtn.addEventListener('click', () => {
+                const newAnswer = { text: `選択肢${(question.answers || []).length + 1}`, correct: false };
+                if (!question.answers) question.answers = [];
+                question.answers.push(newAnswer);
+                renderChoiceAnswers();
+                markAsDirty();
+            });
+        }
+
+        // 選択肢削除ボタン (イベント委譲)
+        answersGroup.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-answer-btn')) {
+                const ansIndex = parseInt(e.target.dataset.ansIndex, 10);
+                if ((question.answers || []).length <= 2) {
+                    alert('選択肢は最低2つ必要です。');
+                    return;
+                }
+                question.answers.splice(ansIndex, 1);
+                renderChoiceAnswers();
+                markAsDirty();
+            }
+        });
+
+        // 入力値の反映（テキスト変更時）
+        answersGroup.addEventListener('input', (e) => {
+            if (e.target.classList.contains('answer-text')) {
+                const ansIndex = parseInt(e.target.dataset.ansIndex, 10);
+                question.answers[ansIndex].text = e.target.value;
+                markAsDirty();
+            }
+        });
+
+        // 正誤の反映（チェック変更時）
+        answersGroup.addEventListener('change', (e) => {
+            if (e.target.classList.contains('is-correct-input')) {
+                // ラジオボタンの場合は他をfalseにする
+                if (!isMultipleChoiceInput.checked) {
+                    question.answers.forEach(a => a.correct = false);
+                }
+                const ansIndex = parseInt(e.target.dataset.ansIndex, 10);
+                question.answers[ansIndex].correct = e.target.checked;
+
+                // 表示更新（ラジオボタンの見た目同期のため）
+                if (!isMultipleChoiceInput.checked) {
+                    // 現在のDOMのchecked状態をデータに合わせて再描画するのはコストが高いので、
+                    // データのみ更新してDOMはブラウザの挙動に任せるのが一般的だが、
+                    // データ同期を確実にするため全正誤フラグを更新
+                    Array.from(answersGroup.querySelectorAll('.is-correct-input')).forEach((input, idx) => {
+                        input.checked = question.answers[idx].correct;
+                    });
+                }
+                markAsDirty();
+            }
+        });
+
 
         setupUIForQuestionType(questionType);
         if (questionType === 'fill-in-the-blank') {

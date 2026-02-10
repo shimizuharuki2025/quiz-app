@@ -252,15 +252,55 @@ window.onload = async function () {
             quizElements.questionImage.style.display = 'none';
         }
 
+        // クラスをリセット
+        quizElements.answerButtons.className = 'answer-buttons';
+
         switch (questionType) {
             case 'single':
             case 'multiple':
+            case 'true-false':
                 quizElements.answerButtons.style.display = 'grid';
-                const shuffledAnswers = shuffleArray([...question.answers]);
-                shuffledAnswers.forEach(answer => {
+
+                // 〇✕問題の場合は専用クラスを追加
+                if (questionType === 'true-false') {
+                    quizElements.answerButtons.classList.add('true-false-grid');
+                } else {
+                    // 選択肢の数に応じてグリッドレイアウトを調整
+                    const answerCount = question.answers.length;
+                    if (answerCount % 2 !== 0) {
+                        // 奇数の場合は1列表示にする（または別のスタイル）
+                        quizElements.answerButtons.classList.add('odd-grid');
+                    }
+                }
+
+                // 〇✕問題以外はシャッフル、〇✕は固定（〇が左、✕が右など）
+                // ただし、データ上は '〇', '✕' の順で入っているはずだが、
+                // ランダム出題の観点からシャッフルしても良いが、UI的には固定が望ましい場合も
+                // ここでは「〇✕」は固定、「その他」はシャッフルとする
+                let displayAnswers = [...question.answers];
+                if (questionType !== 'true-false') {
+                    displayAnswers = shuffleArray(displayAnswers);
+                }
+
+                displayAnswers.forEach(answer => {
                     const button = document.createElement('button');
                     button.dataset.originalText = answer.text;
-                    updateTranslatedElement(button, answer.text);
+
+                    // 〇✕問題の表示調整
+                    if (questionType === 'true-false') {
+                        if (answer.text === '〇') {
+                            button.innerHTML = '<span class="tf-icon circle">⭕</span><span class="tf-text">RIGHT</span>';
+                            button.classList.add('btn-true');
+                        } else if (answer.text === '✕') {
+                            button.innerHTML = '<span class="tf-icon cross">❌</span><span class="tf-text">WRONG</span>';
+                            button.classList.add('btn-false');
+                        } else {
+                            updateTranslatedElement(button, answer.text);
+                        }
+                    } else {
+                        updateTranslatedElement(button, answer.text);
+                    }
+
                     if (questionType === 'multiple') {
                         button.addEventListener('click', () => button.classList.toggle('selected'));
                     } else {
@@ -268,6 +308,7 @@ window.onload = async function () {
                     }
                     quizElements.answerButtons.appendChild(button);
                 });
+
                 if (questionType === 'multiple') {
                     quizElements.confirmAnswerBtn.style.display = 'block';
                     quizElements.confirmAnswerBtn.onclick = () => {
