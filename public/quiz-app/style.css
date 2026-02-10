@@ -918,4 +918,134 @@ button:active {
         opacity: 1;
         visibility: visible;
     }
+
+    /* === ダークモード対応 === */
+    body.dark-mode .user-buttons {
+        background-color: #121212 !important;
+    }
+
+    body.dark-mode .mobile-menu-header {
+        background-color: #1e1e1e !important;
+    }
+
+    body.dark-mode .mobile-menu-header h3 {
+        color: #e0e0e0 !important;
+    }
+
+    body.dark-mode .close-btn {
+        background-color: #333 !important;
+        color: #fff !important;
+    }
+
+    /* 各ボタンのダークモード配色（濃い色味＋白文字） */
+    body.dark-mode #admin-panel-btn {
+        background-color: #4a148c !important;
+        /* 濃い紫 */
+        color: #e1bee7 !important;
+    }
+
+    body.dark-mode #admin-panel-btn .material-icons {
+        color: #e1bee7 !important;
+    }
+
+    body.dark-mode #translate-btn-global {
+        background-color: #0d47a1 !important;
+        /* 濃い青 */
+        color: #bbdefb !important;
+    }
+
+    body.dark-mode #translate-btn-global .material-icons {
+        color: #bbdefb !important;
+    }
+
+    body.dark-mode #view-history-btn {
+        background-color: #1a237e !important;
+        /* 濃い紺 */
+        color: #c5cae9 !important;
+    }
+
+    body.dark-mode #view-history-btn .material-icons {
+        color: #c5cae9 !important;
+    }
+
+    body.dark-mode #open-user-password-modal-btn {
+        background-color: #e65100 !important;
+        /* 濃いオレンジ */
+        color: #ffe0b2 !important;
+    }
+
+    body.dark-mode #open-user-password-modal-btn .material-icons {
+        color: #ffe0b2 !important;
+    }
+
+    body.dark-mode #push-toggle-btn {
+        background-color: #880e4f !important;
+        /* 濃いピンク */
+        color: #f8bbd0 !important;
+    }
+
+    body.dark-mode #push-toggle-btn .material-icons {
+        color: #f8bbd0 !important;
+    }
+
+    body.dark-mode #theme-toggle-btn {
+        background-color: #f57f17 !important;
+        /* 濃い黄色/山吹色 */
+        color: #fff9c4 !important;
+    }
+
+    body.dark-mode #theme-toggle-btn .theme-toggle-icon {
+        filter: brightness(1.5);
+    }
+
+    body.dark-mode #logout-btn {
+        background-color: #b71c1c !important;
+        /* 濃い赤 */
+        color: #ffcdd2 !important;
+        border-color: #e57373 !important;
+    }
+
+    body.dark-mode #logout-btn .material-icons {
+        color: #ffcdd2 !important;
+    }
+
+
+    /* === マイクロインタラクション（アニメーション） === */
+    .user-buttons button {
+        position: relative;
+        overflow: hidden;
+        /* リップル用のためにはみ出し禁止 */
+        transition: transform 0.1s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.2s !important;
+    }
+
+    /* 押したときの沈み込みエフェクト */
+    .user-buttons button:active {
+        transform: scale(0.95) !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+        filter: brightness(0.95);
+    }
+
+    /* リップルエフェクト（擬似要素で実装） */
+    .user-buttons button::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.5s, opacity 0.3s;
+    }
+
+    .user-buttons button:active::after {
+        transform: translate(-50%, -50%) scale(2);
+        /* 波紋が広がる */
+        opacity: 1;
+        transition: 0s;
+        /* クリックした瞬間にリセット */
+    }
 }

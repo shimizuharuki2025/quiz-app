@@ -249,32 +249,47 @@
                 <h3>メニュー</h3>
                 <button id="mobile-menu-close" class="close-btn"><span class="material-icons">close</span></button>
             </div>
-            <button id="admin-panel-btn" style="display: none;">
-                <span class="material-icons">build</span>
-                管理画面へ
-            </button>
-            <button id="translate-btn-global">
-                <span class="material-icons">language</span>
-                Language / 言語選択
-            </button>
+
+            <!-- 重要度の高い順に並び替え -->
+
+            <!-- 1. 学習履歴 (最重要) -->
             <button id="view-history-btn">
                 <span class="material-icons">history</span>
                 学習履歴
             </button>
+
+            <!-- 2. 言語選択 -->
+            <button id="translate-btn-global">
+                <span class="material-icons">language</span>
+                Language / 言語選択
+            </button>
+
+            <!-- 3. テーマ切り替え -->
+            <button id="theme-toggle-btn" onclick="window.toggleTheme()">
+                <span class="theme-toggle-icon">🌙</span> <span class="theme-toggle-text">ダークモード</span>
+            </button>
+
+            <!-- 4. パスワード変更 -->
             <button id="open-user-password-modal-btn">
                 <span class="material-icons">vpn_key</span>
                 変更
             </button>
+
+            <!-- 5. 通知設定 -->
             <button id="push-toggle-btn" style="display: none;">
                 <span class="material-icons">notifications</span>
                 通知ON
             </button>
-            <button id="theme-toggle-btn" onclick="window.toggleTheme()">
-                <span class="theme-toggle-icon material-icons">dark_mode</span>
-                <span class="theme-toggle-text">ダークモード</span>
+
+            <!-- 6. 管理画面 -->
+            <button id="admin-panel-btn" style="display: none;">
+                <span class="material-icons">build</span>
+                管理画面へ
             </button>
+
+            <!-- 7. ログアウト (最後) -->
             <button id="logout-btn">
-                <span class="material-icons">logout</span>
+                <span class="material-icons">exit_to_app</span>
                 ログアウト
             </button>
         </div>
@@ -480,9 +495,9 @@
     </div>
 
     <!-- バージョンを更新してキャッシュをクリア -->
-    <script src="script-auth.js?v=20260208-004"></script>
-    <script src="script.js?v=20260208-004"></script>
-    <script src="script-announcements.js?v=20260208-004"></script>
+    <script src="script-auth.js?v=20260210-001"></script>
+    <script src="script.js?v=20260210-001"></script>
+    <script src="script-announcements.js?v=20260210-001"></script>
 </body>
 
 </html>
