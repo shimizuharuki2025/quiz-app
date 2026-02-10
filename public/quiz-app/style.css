@@ -668,11 +668,11 @@ body.dark-mode #answer-buttons.true-false-grid button.btn-false {
 
 /* 複数回答問題で選択されたボタンのスタイル */
 .btn-grid button.selected {
-    background-color: var(--primary-color);
+    background-color: var(--primary-color) !important;
     /* 背景色を青くする */
-    color: white;
+    color: white !important;
     /* 文字色を白くする */
-    border-color: var(--primary-hover);
+    border-color: var(--primary-hover) !important;
     /* 枠線の色を少し濃い青にする */
 }
 

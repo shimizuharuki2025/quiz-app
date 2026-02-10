@@ -166,26 +166,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // 直列処理(for...of await)から並列処理(Promise.all)に変更して高速化
+            const userDetailPromises = userData.users.map(user =>
+                fetch(`/api/admin/users/${user.id}`)
+                    .then(res => res.json())
+                    .then(d => ({ user, data: d }))
+                    .catch(e => ({ user, error: e }))
+            );
+
+            const results = await Promise.all(userDetailPromises);
             const allLogs = [];
-            for (const user of userData.users) {
-                try {
-                    const res = await fetch(`/api/admin/users/${user.id}`);
-                    const d = await res.json();
-                    if (d.success && d.user.history.quizHistory) {
-                        d.user.history.quizHistory.forEach(historyItem => {
-                            allLogs.push({
-                                ...historyItem,
-                                employeeCode: user.employeeCode,
-                                name: user.name,
-                                storeCode: user.storeCode,
-                                storeName: user.storeName
-                            });
+
+            results.forEach(({ user, data, error }) => {
+                if (!error && data && data.success && data.user.history && data.user.history.quizHistory) {
+                    data.user.history.quizHistory.forEach(historyItem => {
+                        allLogs.push({
+                            ...historyItem,
+                            employeeCode: user.employeeCode,
+                            name: user.name,
+                            storeCode: user.storeCode,
+                            storeName: user.storeName
                         });
-                    }
-                } catch (e) {
-                    console.error('Error fetching user log:', user.id);
+                    });
                 }
-            }
+            });
 
             if (allLogs.length === 0) {
                 alert('出力可能な学習履歴がありません。');
