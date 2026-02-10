@@ -757,3 +757,5 @@ runMigrations().then(() => {
         console.log(`Disk機能: ${process.env.RENDER_DISK_MOUNT_PATH ? '有効 (/data)' : '無効 (ローカル)'}`);
         console.log(`========================================`);
     });
+});
+    });
