@@ -94,9 +94,22 @@ const upload = multer({ storage: storage });
 
 app.use(express.json({ limit: '50mb' }));
 
-// 1. ルートパス (/) のハンドラを静的ファイルより先に定義（強制的に index.html を返す）
+// 1. ルートパス (/) のハンドラ
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        console.error(`CRITICAL ERROR: public/index.html not found at ${indexPath}`);
+        // ディレクトリの中身をログに出力してデバッグ
+        try {
+            const publicFiles = fs.readdirSync(path.join(__dirname, 'public'));
+            console.error('Public directory contents:', publicFiles);
+        } catch (e) {
+            console.error('Could not list public directory:', e);
+        }
+        res.status(404).send('System Error: index.html is missing on server.');
+    }
 });
 
 // 2.// キャッシュリセット用ミドルウェア (特定のファイルへのアクセス時に強力なキャッシュクリアを行う)
@@ -117,7 +130,12 @@ app.use((req, res, next) => {
     next();
 });
 
+// 便利なリダイレクト設定
+app.get('/admin-tool', (req, res) => res.redirect('/admin-tool/admin.html'));
+app.get('/admin-tool/', (req, res) => res.redirect('/admin-tool/admin.html'));
+
 // 静的ファイルの配信
+console.log(`Static files served from: ${path.join(__dirname, 'public')}`);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- ▼▼▼【セッション管理の設定】▼▼▼ ---
