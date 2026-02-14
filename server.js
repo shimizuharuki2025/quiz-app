@@ -9,13 +9,15 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const webpush = require('web-push');
 const db = require('./db'); // データベース接続
-
-// Version Check Log
-const CURRENT_VERSION = "v5.3-DEBUG-2026-02-14-1958";
-console.log(`SERVER STARTING - VERSION: ${CURRENT_VERSION}`);
-
 const app = express();
 const PORT = process.env.PORT || 10000;
+
+// Renderなどのリバースプロキシを信頼する
+app.set('trust proxy', 1);
+
+// Version Check Log
+const CURRENT_VERSION = "v5.4-FIX-REDIRECTS";
+console.log(`SERVER STARTING - VERSION: ${CURRENT_VERSION}`);
 
 // Simple Version Endpoint
 app.get('/version', (req, res) => res.send(CURRENT_VERSION));
@@ -34,13 +36,17 @@ app.get('/debug-fs', (req, res) => {
         res.status(500).json({ error: e.message, stack: e.stack });
     }
 });
-// HTMLファイルや管理ツール関連はキャッシュさせない（常に最新をチェックさせる）
-if (url.endsWith('.html') || url.includes('/admin-tool/') || url.includes('/api/auth/')) {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-}
-next();
+
+// キャッシュ制御と初期化
+app.use((req, res, next) => {
+    const url = req.url;
+    // HTMLファイルや管理ツール関連はキャッシュさせない
+    if (url.endsWith('.html') || url.includes('/admin-tool/') || url.includes('/api/auth/')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+    }
+    next();
 });
 
 // --- ▼▼▼【Disk機能の設定】▼▼▼ ---
@@ -128,18 +134,8 @@ app.get('/', (req, res) => {
     }
 });
 
-// 2.// キャッシュリセット用ミドルウェア (特定のファイルへのアクセス時に強力なキャッシュクリアを行う)
+// 特定のファイルへのアクセス時に強力なキャッシュクリアを行う
 app.use((req, res, next) => {
-    // ユーザー管理画面や管理トップへのアクセス時
-    if (req.path.includes('/admin-tool/users.html') || req.path.includes('/admin-tool/admin.html')) {
-        res.set('Clear-Site-Data', '"cache"');
-    }
-    next();
-});
-
-// キャッシュリセット用ミドルウェア (特定のファイルへのアクセス時に強力なキャッシュクリアを行う)
-app.use((req, res, next) => {
-    // ユーザー管理画面や管理トップへのアクセス時
     if (req.path.includes('/admin-tool/users.html') || req.path.includes('/admin-tool/admin.html')) {
         res.set('Clear-Site-Data', '"cache"');
     }
