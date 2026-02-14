@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 10000;
 app.set('trust proxy', 1);
 
 // Version Check Log
-const CURRENT_VERSION = "v5.4-FIX-REDIRECTS";
+const CURRENT_VERSION = "v5.5-FINAL-PORT-FIX";
 console.log(`SERVER STARTING - VERSION: ${CURRENT_VERSION}`);
 
 // Simple Version Endpoint
@@ -787,9 +787,10 @@ app.get('/api/backup', (req, res) => {
 // マイグレーション実行（DB初期化・更新）
 const runMigrations = require('./migrate');
 runMigrations().then(() => {
-    app.listen(port, () => {
+    app.listen(PORT, () => {
         console.log(`========================================`);
-        console.log(`サーバーがポート ${port} で起動しました。`);
+        console.log(`SERVER STARTING - VERSION: v5.5-FINAL-PORT-FIX`);
+        console.log(`サーバーがポート ${PORT} で起動しました。`);
         console.log(`データ保存先: ${quizDataPath}`);
         console.log(`画像保存先: ${uploadPath}`);
         console.log(`Disk機能: ${process.env.RENDER_DISK_MOUNT_PATH ? '有効 (/data)' : '無効 (ローカル)'}`);
