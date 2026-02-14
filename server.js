@@ -1,4 +1,4 @@
-//【確定版 v5】server.js - ユーザー認証とセッション管理機能追加
+//【確定版 v5.1】server.js - ユーザー認証とセッション管理機能追加 (Debug)
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
