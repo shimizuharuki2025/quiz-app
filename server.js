@@ -1,4 +1,5 @@
-//【確定版 v5.1】server.js - ユーザー認証とセッション管理機能追加 (Debug)
+//【確定版 v5.2】server.js - ユーザー認証とセッション管理機能追加 (Debug Version: Fix deployment issues of 2026-02-14)
+console.log("SERVER STARTING - VERSION: 2026-02-14-FIX-REDIRECTS-v2");
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
