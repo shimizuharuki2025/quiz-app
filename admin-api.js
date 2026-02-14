@@ -84,9 +84,12 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
 
         } catch (error) {
             console.error('ユーザー一覧取得エラー:', error);
-            res.status(500).json({
-                success: false,
-                message: 'サーバーエラーが発生しました。'
+            // DB接続エラーの場合は空リストを返して画面をクラッシュさせない
+            res.json({
+                success: true,
+                users: [],
+                message: 'データベースに接続できないため、リストを表示できません。',
+                dbError: true
             });
         }
     });
@@ -183,9 +186,10 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
 
         } catch (error) {
             console.error('ユーザー詳細取得エラー:', error);
-            res.status(500).json({
-                success: false,
-                message: 'サーバーエラーが発生しました。'
+            res.json({
+                success: false, // ここはfalseで良いが、画面側でエラーを優しく表示させる
+                message: 'データベース未接続のため詳細を表示できません。',
+                dbError: true
             });
         }
     });
@@ -464,9 +468,24 @@ module.exports = function (app, usersDataPath, learningHistoryPath, quizDataPath
 
         } catch (error) {
             console.error('統計データ取得エラー:', error);
-            res.status(500).json({
-                success: false,
-                message: '統計データの取得に失敗しました。'
+            // DBエラー時はオール0の統計データを返す
+            res.json({
+                success: true,
+                stats: {
+                    summary: {
+                        totalUsers: 0,
+                        activeUsers: 0,
+                        totalPlayCount: 0,
+                        averageScore: 0,
+                        totalCorrectAnswers: 0,
+                        totalQuestions: 0
+                    },
+                    categoryStats: {},
+                    storeStats: {},
+                    recentActivity: []
+                },
+                message: 'データベースに接続できないため、統計を表示できません。',
+                dbError: true
             });
         }
     });
