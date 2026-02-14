@@ -63,6 +63,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (data.success) {
+                if (data.dbError) {
+                    const errorBanner = document.createElement('div');
+                    errorBanner.style.cssText = 'background: #ffebee; color: #c62828; padding: 15px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ef9a9a; font-weight: bold;';
+                    errorBanner.innerHTML = '<span class="material-icons" style="vertical-align: middle; margin-right: 5px;">error</span> データベースに接続できません。統計情報は表示されません。';
+                    const container = document.querySelector('.container') || document.getElementById('admin-content');
+                    if (container) container.insertBefore(errorBanner, container.firstChild);
+                }
                 statsData = data.stats;
                 renderDashboard(statsData);
             } else {
