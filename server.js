@@ -213,21 +213,29 @@ app.post('/api/v1/auth/admin', async (req, res) => {
 
     // 1. 個別の従業員アカウントでの認証を試行
     if (employeeCode && password) {
-        const result = await db.query('SELECT * FROM users WHERE employee_code = $1', [employeeCode]);
-        const user = result.rows[0];
+        try {
+            const result = await db.query('SELECT * FROM users WHERE employee_code = $1', [employeeCode]);
+            const user = result.rows[0];
 
-        if (user && !user.is_banned && user.is_admin) {
-            const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-            if (isPasswordValid) {
-                if (req.session) {
-                    req.session.userId = user.id;
-                    req.session.employeeCode = user.employee_code;
-                    req.session.name = user.name;
-                    req.session.isAdmin = true;
+            if (user && !user.is_banned && user.is_admin) {
+                const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+                if (isPasswordValid) {
+                    if (req.session) {
+                        req.session.userId = user.id;
+                        req.session.employeeCode = user.employee_code;
+                        req.session.name = user.name;
+                        req.session.isAdmin = true;
+                    }
+                    console.log('管理者としてログインしました(個別):', employeeCode);
+                    return res.json({ authenticated: true, method: 'individual' });
                 }
-                console.log('管理者としてログインしました(個別):', employeeCode);
-                return res.json({ authenticated: true, method: 'individual' });
             }
+        } catch (dbError) {
+            console.error('Database Auth Error:', dbError);
+            // DBエラーの場合は、フォールバック（共有パスワード）に進むか、エラーを返すか。
+            // ここでは移行期間なのでログを出してフォールバックに進むようにするが、
+            // 致命的な設定ミスの可能性が高いので、明示的にエラーレスポンスを返す手もある。
+            // しかし、ユーザーがまだDB設定していない可能性大なので、共有パスワード認証へ流すのが安全。
         }
     }
 
