@@ -290,10 +290,14 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
             });
 
         } catch (error) {
-            console.error('ユーザー情報取得エラー:', error);
-            res.status(500).json({
-                success: false,
-                message: 'サーバーエラーが発生しました。'
+            console.error('ユーザー情報取得エラー（DB接続失敗の可能性）:', error);
+            // DBエラー時はセッションを破棄してログアウト状態にする（無限エラー防止）
+            req.session.destroy(() => {
+                res.json({
+                    success: false,
+                    loggedIn: false,
+                    message: 'セッションが無効、またはデータベース接続エラーです。'
+                });
             });
         }
     });
