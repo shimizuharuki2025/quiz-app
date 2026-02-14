@@ -291,14 +291,26 @@ module.exports = function (app, usersDataPath, learningHistoryPath) {
 
         } catch (error) {
             console.error('ユーザー情報取得エラー（DB接続失敗の可能性）:', error);
-            // DBエラー時はセッションを破棄してログアウト状態にする（無限エラー防止）
-            req.session.destroy(() => {
-                res.json({
-                    success: false,
-                    loggedIn: false,
-                    message: 'セッションが無効、またはデータベース接続エラーです。'
-                });
-            });
+
+            // セッションがあれば破棄
+            if (req.session) {
+                try {
+                    req.session.destroy((err) => {
+                        if (err) console.error('セッション破棄エラー:', err);
+                        // レスポンスを返す（エラーでもsuccess: false）
+                        res.json({
+                            success: false,
+                            loggedIn: false,
+                            message: 'データベース接続エラーのためログアウトしました。'
+                        });
+                    });
+                } catch (e) {
+                    console.error('セッション破棄処理中の例外:', e);
+                    res.json({ success: false, loggedIn: false });
+                }
+            } else {
+                res.json({ success: false, loggedIn: false });
+            }
         }
     });
 
